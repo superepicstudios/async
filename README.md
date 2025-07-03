@@ -16,7 +16,7 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 `Async` adds additional foundational types & helpers that make working with channels, streams, sequences, subjects, and publishers _much_
 simpler - all while bridging the gaps between them.
 
-# 🗃️ Table of Contents
+## 🗃️ Table of Contents
 
 - [Async](#⏳-Async)
   - [Channels](#💬-Channels)
@@ -219,7 +219,7 @@ class ValueProvider {
 }
 ```
 
-# 🔀 Combine
+## 🔀 Combine
 
 [Combine](https://developer.apple.com/documentation/combine) - despite Apple's neglect - is still a widely used &
 powerful reactive framework that makes controlling the flow of data simple & declarative. With the introduction of
@@ -229,26 +229,26 @@ be sticking around (and used by many) for the forseeable future. `Async` also ad
 & extensions around [Combine](https://developer.apple.com/documentation/combine). Just because something is "legacy",
 doesn't mean it has to be ugly 🙃
 
-## 📚 Combine Subjects
+### 📚 Combine Subjects
 
 [Combine](https://developer.apple.com/documentation/combine) comes out-of-the-box with `CurrentValueSubject` &
 `PassthroughSubject` implementations. Additionally, `Async` adds the following subject types:
 
-### GuaranteeCurrentValueSubject
+#### GuaranteeCurrentValueSubject
 
 ```swift
 // A `CurrentValueSubject` that can never fail
 let subject = GuaranteeCurrentValueSubject<Int>(0)
 ```
 
-### GuaranteePassthroughSubject
+#### GuaranteePassthroughSubject
 
 ```swift
 // A `PassthroughSubject` that can never fail
 let subject = GuaranteePassthroughSubject<Int>()
 ```
 
-### SignalSubject
+#### SignalSubject
 
 ```swift
 // Broadcasts signals to downstream subscribers.
@@ -264,14 +264,14 @@ subject.send()
 // → "Signal"
 ```
 
-# 🧵 Thread Safety
+## 🧵 Thread Safety
 
 Though not directly related to asynchronous work, thread-safety is something that goes hand-in-hand with the concept.
 Modern Swift concurrency helps protect us from potential unsafe operations when working with async code. However, there
 are some scenarios where working in an unsafe asynchronous context is unavoidable. `Async` adds some additional helpers
 to make these scenarios simple to navigate.
 
-## ⚠️ Critical
+### ⚠️ Critical
 
 When tracking critical state or values, it's important to protect against scenarios that could potentially introduce
 unsafe read & write operations. Different threads attempting to access a single value at the same time can be a
@@ -296,7 +296,7 @@ If `ManagedCriticalState` is ever made public, this will likely be migrated to a
 public typealias Critical<Value> = ManagedCriticalState<Value>
 ```
 
-## 🔒 @Mutex
+### 🔒 @Mutex
 
 Prior to iOS 18 & macOS 15, thread-safe value locking was a manual process. With the introduction of the
 [Synchronization](https://developer.apple.com/documentation/os/synchronization) framework, we gained a new
@@ -336,14 +336,14 @@ mutex, and thus, protected! The generated code looks something like this:
 }
 ```
 
-# 🗺️ Roadmap
+## 🗺️ Roadmap
 
-## 1.0.0 (Initial Release)
+### 1.0.0 (Initial Release)
 
 - Test macro wrappers against `ObservableObject` & `@Observable`
 - Finalize demo project
 
-## Next
+### Next
 
 - Async & Combine subject macro wrappers:
   - `@PublishedPipe`
@@ -356,6 +356,6 @@ mutex, and thus, protected! The generated code looks something like this:
   - `@StreamingPassthrough`
   - `@StreamingSignal`
 
-# 👨🏻‍💻 Contributing
+## 👨🏻‍💻 Contributing
 
 Pull-requests are more than welcome. Bug fix? Feature? Open a PR and we'll get it merged in! 🎉
