@@ -13,6 +13,8 @@
 
 Async data-over-time (DoT), flow, & extension library that builds on the amazing work of [AsyncAlgorithms](https://github.com/apple/swift-async-algorithms) & [AsyncExtensions](https://github.com/sideeffect-io/AsyncExtensions). `Async` adds additional foundational types & helpers that make working with channels, streams, sequences, subjects, and publishers _much_ simpler - all while bridging the gaps between them.
 
+---
+
 - [Channels](#-Channels)
 - [Async Subjects](#-Async-Subjects)
   - [AsyncReplaySubject](#AsyncReplaySubject)
@@ -38,7 +40,7 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 - [AsyncBufferedChannel](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Channel/AsyncBufferedChannel.swift)
 - [AsyncThrowingBufferedChannel](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Channel/AsyncThrowingBufferedChannel.swift)
 
-Both of these function almost identically to their [AsyncAlgorithms](https://github.com/apple/swift-async-algorithms) counterparts. However, as their names suggest, they _buffer_ their elements without suspending on `send`. One important thing to note, channels do **not** share (multicast) their elements. If multiple consumers are iterating over a channel, its elements will be _spread_ across them.
+Both of these function almost identically to their `AsyncAlgorithms` counterparts. However, as their names suggest, they _buffer_ their elements without suspending on `send`. One important thing to note, channels do **not** share (multicast) their elements. If multiple consumers are iterating over a channel, its elements will be _spread_ across them.
 
 ```swift
 let channel = AsyncBufferedChannel<Int>()
@@ -200,27 +202,27 @@ class ValueProvider {
 
 ## 🔀 Combine
 
-[Combine](https://developer.apple.com/documentation/combine) - despite Apple's neglect - is still a widely used & powerful reactive framework that makes controlling the flow of data simple & declarative. With the introduction of [structured concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency), its unclear exactly how this framework fits into Swift's roadmap. That being said, its not deprecated and will likely be sticking around (and used by many) for the forseeable future. `Async` also adds some quality-of-life additions & extensions around [Combine](https://developer.apple.com/documentation/combine). Just because something is "legacy", doesn't mean it has to be ugly 🙃
+[Combine](https://developer.apple.com/documentation/combine) - despite Apple's neglect - is still a widely used & powerful reactive framework that makes controlling the flow of data simple & declarative. With the introduction of [structured concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency), its unclear exactly how this framework fits into Swift's roadmap. That being said, its not deprecated and will likely be sticking around (and used by many) for the forseeable future. `Async` also adds some quality-of-life additions & extensions around `Combine`. Just because something is "legacy", doesn't mean it has to be ugly 🙃
 
 ### 📚 Combine Subjects
 
 [Combine](https://developer.apple.com/documentation/combine) comes out-of-the-box with `CurrentValueSubject` & `PassthroughSubject` implementations. Additionally, `Async` adds the following subject types:
 
-#### GuaranteeCurrentValueSubject
+#### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/GuaranteeCurrentValueSubject.swift)
 
 ```swift
 // A `CurrentValueSubject` that can never fail
 let subject = GuaranteeCurrentValueSubject<Int>(0)
 ```
 
-#### GuaranteePassthroughSubject
+#### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/GuaranteePassthroughSubject.swift)
 
 ```swift
 // A `PassthroughSubject` that can never fail
 let subject = GuaranteePassthroughSubject<Int>()
 ```
 
-#### SignalSubject
+#### [SignalSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/SignalSubject.swift)
 
 ```swift
 // Broadcasts signals to downstream subscribers.
@@ -242,7 +244,7 @@ Though not directly related to asynchronous work, thread-safety is something tha
 
 ### ⚠️ Critical
 
-When tracking critical state or values, it's important to protect against scenarios that could potentially introduce unsafe read & write operations. Different threads attempting to access a single value at the same time can be a recipe for disaster. `Async` adds a foundational `Critical<Value>` type that helps protect against these scanarios.
+When tracking critical state or values, it's important to protect against scenarios that could potentially introduce unsafe read & write operations. Different threads attempting to access a single value at the same time can be a recipe for disaster. `Async` adds a foundational [Critical](https://github.com/superepicstudios/Async/blob/main/Sources/Async/ThreadSafety/Critical.swift) type that helps protect against these scanarios.
 
 ```swift
 let critical = Critical<Int>(0)
@@ -256,7 +258,7 @@ value = critical.get()
 print(value) // 1
 ```
 
-**Note**: This is a public re-implementation of `ManagedCriticalState` from [AsyncAlgorithms](https://github.com/apple/swift-async-algorithms). If `ManagedCriticalState` is ever made public, this will likely be migrated to a typealias:
+**Note**: This is a public re-implementation of [ManagedCriticalState](https://github.com/apple/swift-async-algorithms/blob/main/Sources/AsyncAlgorithms/Locking.swift#L131) from `AsyncAlgorithms`. If `ManagedCriticalState` is ever made public, this will likely be migrated to a typealias:
 
 ```swift
 public typealias Critical<Value> = ManagedCriticalState<Value>
