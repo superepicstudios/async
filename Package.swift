@@ -21,7 +21,10 @@ let package = Package(
     ],
     dependencies: [
 
-        .package(path: "../../private/modern/secommon-swift"),
+        .package(
+            url: "https://github.com/superepicstudios/espresso",
+            "0.0.1"..<"1.0.0"
+        ),
 
         .package(
             url: "https://github.com/apple/swift-async-algorithms",
@@ -48,8 +51,8 @@ let package = Package(
                 .target(name: "AsyncMacros"),
 
                 .product(
-                    name: "SECommon",
-                    package: "secommon-swift"
+                    name: "Espresso",
+                    package: "espresso"
                 ),
 
                 .product(
