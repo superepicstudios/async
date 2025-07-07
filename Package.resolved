@@ -1,6 +1,15 @@
 {
-  "originHash" : "1ca6c62d59b4540c2292752320ee8074eea3827e9b2cbf77826bfd1d5b1ff730",
+  "originHash" : "bd64ae58e399eef38b5d91fae1b96234d5d55b6067b03c9a7a416d3fb8276ae9",
   "pins" : [
+    {
+      "identity" : "espresso",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/superepicstudios/espresso",
+      "state" : {
+        "branch" : "dev",
+        "revision" : "48952afacd2f749ac501117b217374cb7ef46814"
+      }
+    },
     {
       "identity" : "swift-async-algorithms",
       "kind" : "remoteSourceControl",

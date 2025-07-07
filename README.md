@@ -1,37 +1,8 @@
 ![Async](Assets/banner.png)
 
-<div align="center">
-
-![Version](https://img.shields.io/badge/Version-0.0.1--β-FEEDCB.svg?labelColor=F8D6D9)
-![Swift](https://img.shields.io/badge/Swift-6.2-FEEDCB.svg?logo=swift&logoColor=3F3D3D&labelColor=F8D6D9)
-![iOS](https://img.shields.io/badge/iOS-18-FEEDCB.svg?logo=apple&logoColor=3F3D3D&labelColor=F8D6D9)
-![macOS](https://img.shields.io/badge/macOS-15-FEEDCB.svg?logo=apple&logoColor=3F3D3D&labelColor=F8D6D9)
-
-</div>
-
-# 🌀 Async
+# ⏳ Async ⋅ ![Version](https://img.shields.io/badge/Version-0.0.1_βeta-fbfaf4.svg?labelColor=313244) ![Swift](https://img.shields.io/badge/Swift-6-fbfaf4.svg?logo=swift&logoColor=fbfaf4&labelColor=313244) ![iOS](https://img.shields.io/badge/iOS-18-fbfaf4.svg?logo=apple&logoColor=fbfaf4&labelColor=313244) ![macOS](https://img.shields.io/badge/macOS-15-fbfaf4.svg?logo=apple&logoColor=fbfaf4&labelColor=313244)
 
 Async data-over-time (DoT), flow, & extension library that builds on the amazing work of [AsyncAlgorithms](https://github.com/apple/swift-async-algorithms) & [AsyncExtensions](https://github.com/sideeffect-io/AsyncExtensions). `Async` adds additional foundational types & helpers that make working with channels, streams, sequences, subjects, and publishers _much_ simpler - all while bridging the gaps between them.
-
----
-
-- [Channels](#-Channels)
-- [Async Subjects](#-Async-Subjects)
-  - [AsyncReplaySubject](#AsyncReplaySubject)
-  - [AsyncCurrentValueSubject](#AsyncCurrentValueSubject)
-  - [AsyncPassthroughSubject](#AsyncPassthroughSubject)
-  - [AsyncSignalSubject](#AsyncSignalSubject)
-- [TaskActor](#-TaskActor)
-- [Combine](#-Combine)
-  - [Subjects](#-Combine-Subjects)
-    - [GuaranteeCurrentValueSubject](#GuaranteeCurrentValueSubject)
-    - [GuaranteePassthroughSubject](#GuaranteePassthroughSubject)
-    - [SignalSubject](#SignalSubject)
-- [Thread Safety](#-Thread-Safety)
-  - [Critical](#-Critical)
-  - [@Mutex](#-@Mutex)
-- [Roadmap](#-Roadmap)
-- [Contributing](#-Contributing)
 
 ## 💬 Channels
 
