@@ -46,7 +46,7 @@ public struct AnyAsyncValueSequence<Element: Sendable>: AsyncSequence, AsyncValu
     
 }
 
-extension AsyncSequence where Self: AsyncValueProviding, Self: Sendable {
+extension AsyncSequence where Self: AsyncValueProviding, Self: Sendable, Element: Sendable {
     
     /// Erases the receiver into an ``AnyAsyncValueSequence``.
     /// - returns: The receiver as a type-erased ``AnyAsyncValueSequence``.
