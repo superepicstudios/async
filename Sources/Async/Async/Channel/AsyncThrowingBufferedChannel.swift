@@ -384,7 +384,7 @@ extension AsyncThrowingBufferedChannel {
         }
         
         let id: Int
-        let continuation: UnsafeContinuation<Element?, Error>?
+        let continuation: UnsafeContinuation<Element?, any Error>?
 
         static func placeholder(id: Int) -> Consumer {
             .init(id: id, continuation: nil)

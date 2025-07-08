@@ -7,9 +7,9 @@
 //
 
 @preconcurrency import Combine
-import Dispatch
-import Espresso
-import Foundation
+public import Dispatch
+public import Espresso
+public import Foundation
 
 // MARK: Async
 
@@ -48,7 +48,7 @@ extension Publisher {
     public func tap() throws -> Output {
         
         var value: Output?
-        var error: Error?
+        var error: (any Error)?
         var bag = CancellableBag()
 
         sink { completion in

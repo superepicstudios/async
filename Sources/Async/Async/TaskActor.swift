@@ -29,7 +29,7 @@ import Foundation
 /// ```
 public actor TaskActor<T: Sendable> {
     
-    private var task: Task<T, Error>?
+    private var task: Task<T, any Error>?
     
     /// Executes a task closure within the actor's isolation context.
     /// - parameter operation: The task closure to execute.

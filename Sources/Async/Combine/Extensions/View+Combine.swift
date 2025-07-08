@@ -7,7 +7,7 @@
 //
 
 @preconcurrency import Combine
-import SwiftUI
+public import SwiftUI
 
 extension View {
     

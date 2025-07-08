@@ -1,13 +1,13 @@
 {
-  "originHash" : "c128f1897f263de2090fb005b2a647d3ad540265c10e8a0eae892ad3fccf0105",
+  "originHash" : "983f48b898fde4acb8a05db10d15ccc525b2d00814445da11d4fc8cb7749e799",
   "pins" : [
     {
       "identity" : "espresso",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/superepicstudios/espresso",
       "state" : {
-        "revision" : "62f203209b0b8092a849bccc689ad5ffb654417d",
-        "version" : "0.0.1"
+        "branch" : "dev",
+        "revision" : "a019da5f39dc2eaf55e86a18a5d03df42b87cb62"
       }
     },
     {

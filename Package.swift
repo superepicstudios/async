@@ -23,7 +23,7 @@ let package = Package(
 
         .package(
             url: "https://github.com/superepicstudios/espresso",
-            "0.0.1"..<"1.0.0"
+            branch: "dev"
         ),
 
         .package(
@@ -67,13 +67,15 @@ let package = Package(
 
             ],
             path: "Sources/Async",
-            resources: []
+            resources: [],
+            swiftSettings: .modern
         ),
 
         .testTarget(
             name: "AsyncTests",
             dependencies: ["Async"],
-            path: "Sources/AsyncTests"
+            path: "Sources/AsyncTests",
+            swiftSettings: .modern
         ),
 
         .macro(
@@ -83,9 +85,7 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
             ],
             path: "Sources/AsyncMacros",
-            swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency")
-            ]
+            swiftSettings: .modern
         ),
 
         .testTarget(
@@ -101,11 +101,23 @@ let package = Package(
 
             ],
             path: "Sources/AsyncMacrosTests",
-            swiftSettings: [
-                .enableUpcomingFeature("StrictConcurrency")
-            ]
+            swiftSettings: .modern
         )
 
     ],
     swiftLanguageModes: [.v6]
 )
+
+extension [SwiftSetting] {
+
+    static let modern: [SwiftSetting] = [
+
+        .enableUpcomingFeature("ApproachableConcurrency"),
+        .enableUpcomingFeature("ExistentialAny"),
+        .enableUpcomingFeature("InternalImportsByDefault"),
+        .enableUpcomingFeature("MemberImportVisibility"),
+        .enableUpcomingFeature("StrictConcurrency")
+
+    ]
+
+}

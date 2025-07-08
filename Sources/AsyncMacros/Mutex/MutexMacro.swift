@@ -6,11 +6,12 @@
 //  Copyright © 2025 Super Epic Studios, LLC.
 //
 
-import Foundation
+public import Foundation
 import SwiftCompilerPlugin
 import SwiftDiagnostics
-import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntax
+import SwiftSyntaxBuilder
+public import SwiftSyntaxMacros
 
 fileprivate let macroName: String = "Mutex"
 fileprivate let privateVariableTypeName: String = "Mutex"
