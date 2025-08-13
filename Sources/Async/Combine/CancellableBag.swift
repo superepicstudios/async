@@ -12,4 +12,4 @@
 ///
 /// - Note: In case contained cancellables need to be manually cancelled,
 ///   empty the bag, or create a new one in its place.
-public typealias CancellableBag = Set<AnyCancellable>
+//public typealias CancellableBag = Set<AnyCancellable>
