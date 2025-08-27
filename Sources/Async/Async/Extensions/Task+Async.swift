@@ -20,12 +20,10 @@ extension Task {
     
     /// Stores the task as a type-erased cancellable in the specified set.
     /// - parameter set: The set in which to store this ``Task``.
-    public func store(in set: inout Set<AnyCancellable>) {
-        
+    public func store(in set: inout CancellableSet) {
         set.insert(.init {
             cancel()
         })
-        
     }
     
 }

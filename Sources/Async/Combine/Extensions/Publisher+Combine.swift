@@ -49,7 +49,7 @@ extension Publisher {
         
         var value: Output?
         var error: (any Error)?
-        var bag = CancellableBag()
+        var cancellables = CancellableSet()
 
         sink { completion in
 
@@ -61,7 +61,7 @@ extension Publisher {
         } receiveValue: { v in
             value = v
         }
-        .store(in: &bag)
+        .store(in: &cancellables)
 
         if let value {
             return value
