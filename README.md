@@ -6,15 +6,12 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 
 ## 📖 Table of COntents
 
-<details><summary>ReplayStream Dropdown Test</summary>
-  ```swift
-  let s = ReplayStream<String, Never>(1)
-  s.send("foo")
-  ```
-</details>
-
 - [⬇️ Installation](#-installation)
 - [📁 Structure](#-structure)
+<details><summary>🌊 Streams</summary>
+  <details><summary>[ReplayStream](#-replaystream)</summary></details>
+</details>
+
 - [🌊 Streams](#-streams)
   - [ReplayStream](#replaystream)
   - [ValueStream](#valuestream)
