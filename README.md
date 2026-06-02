@@ -313,7 +313,7 @@ class ValueProvider {
 
 [Combine](https://developer.apple.com/documentation/combine) comes out-of-the-box with `CurrentValueSubject` & `PassthroughSubject` implementations. Additionally, Async adds the following subject types:
 
-#### [SignalSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/SignalSubject.swift)
+### [SignalSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/SignalSubject.swift)
 
 A subject that sends signals to downstream subscribers.
 
@@ -329,7 +329,7 @@ subject.send()
 // → "Signal"
 ```
 
-#### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeCurrentValueSubject.swift)
+### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeCurrentValueSubject.swift)
 
 A [CurrentValueSubject](https://developer.apple.com/documentation/combine/currentvaluesubject) that can never fail.
 
@@ -337,7 +337,7 @@ A [CurrentValueSubject](https://developer.apple.com/documentation/combine/curren
 let subject = GuaranteeCurrentValueSubject<Int>(0)
 ```
 
-#### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteePassthroughSubject.swift)
+### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteePassthroughSubject.swift)
 
 A [PassthroughSubject](https://developer.apple.com/documentation/combine/passthroughsubject) that can never fail.
 
@@ -345,7 +345,7 @@ A [PassthroughSubject](https://developer.apple.com/documentation/combine/passthr
 let subject = GuaranteePassthroughSubject<Int>()
 ```
 
-#### [GuaranteeReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeReplaySubject.swift)
+### [GuaranteeReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeReplaySubject.swift)
 
 A [ReplaySubject](https://github.com/CombineCommunity/CombineExt/blob/main/Sources/Subjects/ReplaySubject.swift) that can never fail.
 
