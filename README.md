@@ -6,10 +6,10 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 
 ## 📖 Table of COntents
 
-- [⬇️ Installation](#-installation)
-- [📁 Structure](#-structure)
+▶︎ [⬇️ Installation](#-installation)
+▶︎ [📁 Structure](#-structure)
 <details><summary>🌊 Streams</summary>
-  <details><summary>[ReplayStream](#-replaystream)</summary></details>
+  <details><summary href="#-replaystream">ReplayStream</summary></details>
 </details>
 
 - [🌊 Streams](#-streams)
