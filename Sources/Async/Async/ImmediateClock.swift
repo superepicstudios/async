@@ -10,14 +10,14 @@ import Foundation
 
 /// A clock that sleeps instantly, and doesn't suspend.
 public final class ImmediateClock<Duration: DurationProtocol & Hashable>: Clock, @unchecked Sendable {
-    
-    private var sleepCount: Int = 0
-    
+        
     public var now: Instant { _now }
     @Mutex private var _now: Instant = .init()
 
     public private(set) var minimumResolution: Duration = .zero
 
+    private var sleepCount: Int = 0
+    
     public init(now: Instant = .init()) {
         self._now = now
     }
@@ -26,13 +26,10 @@ public final class ImmediateClock<Duration: DurationProtocol & Hashable>: Clock,
         until deadline: Instant,
         tolerance: Duration?
     ) async throws {
-
         self.sleepCount += 1
         try Task.checkCancellation()
         self._now = deadline
-
     }
-    
 }
 
 // MARK: Types
@@ -61,7 +58,5 @@ extension ImmediateClock {
         public func duration(to other: Self) -> Duration {
             other.offset - self.offset
         }
-
     }
-    
 }

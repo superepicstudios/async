@@ -14,7 +14,7 @@
 public final class CancelBag: Cancellable, Sendable {
 
     private struct Storage: Sendable {
-        var cancellables = Set<AnyCancellable>()
+        var cancellables = CancellableSet()
         var isCancelled = false
     }
 
@@ -22,7 +22,7 @@ public final class CancelBag: Cancellable, Sendable {
 
     /// Initializes a cancel bag.
     public init() {}
-
+    
     deinit {
         cancel()
     }
@@ -32,23 +32,20 @@ public final class CancelBag: Cancellable, Sendable {
     ///
     /// - Note: Inserting an element into a bag that is already
     ///   cancelled will _not_ retain the element, and will
-    ///   immediately cancel the element.
+    ///   immediately cancel.
     public func insert(_ element: any Cancellable) {
 
         let isCancelled = self._storage.withLock { store in
-
             if !store.isCancelled {
                 store.cancellables.insert(.init(element))
             }
 
             return store.isCancelled
-
         }
 
         if isCancelled {
             element.cancel()
         }
-
     }
 
     /// Removes and cancels all elements in the bag.
@@ -56,10 +53,10 @@ public final class CancelBag: Cancellable, Sendable {
         cancel(terminal: false)
     }
 
-    /// Cancels the bag and all elements it contains.
+    /// Cancels the bag, and all its elements.
     ///
-    /// This introduces a terminal state from which
-    /// no additional elements can be added to the bag.
+    /// - Note: This introduces a terminal state from which
+    ///   no additional elements can be added to the bag.
     public func cancel() {
         cancel(terminal: true)
     }
@@ -81,35 +78,30 @@ public final class CancelBag: Cancellable, Sendable {
             let cancellables = store.cancellables
             store.cancellables.removeAll()
             return cancellables
-
         }
 
         cancellables.forEach {
             $0.cancel()
         }
-
     }
-
 }
 
-public extension Cancellable {
+extension Cancellable {
 
-    /// Stores the cancellable in a bag.
-    /// - parameter bag: The bag in which to store this cancellable.
-    func store(in bag: CancelBag) {
+    /// Stores the cancellable in a cancel bag.
+    /// - parameter bag: A bag in which to store this cancellable.
+    public func store(in bag: CancelBag) {
         bag.insert(self)
     }
-
 }
 
-public extension Task {
+extension Task {
 
     /// Stores the task in a cancel bag.
-    /// - parameter bag: The cancel bag in which to store this task.
-    func store(in bag: CancelBag) {
+    /// - parameter bag: A bag in which to store this task.
+    public func store(in bag: CancelBag) {
         bag.insert(AnyCancellable {
             cancel()
         })
     }
-
 }

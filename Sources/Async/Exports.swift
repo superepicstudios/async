@@ -8,4 +8,5 @@
 
 @_exported import AsyncAlgorithms
 @_exported @preconcurrency import Combine
+@_exported import CombineExt
 @_exported import Synchronization

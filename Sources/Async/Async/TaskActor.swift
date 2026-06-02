@@ -18,13 +18,10 @@ import Foundation
 ///     private let updateTask = TaskActor<Int>()
 ///
 ///     func update() async {
-///
 ///         self.value = await self.updateTask.run { [weak self] in
 ///             await self?.generator.generate() ?? 0
 ///         }
-///
 ///     }
-///
 /// }
 /// ```
 public actor TaskActor<T: Sendable> {
@@ -47,7 +44,5 @@ public actor TaskActor<T: Sendable> {
         }
         
         return try await self.task!.value
-        
     }
-    
 }

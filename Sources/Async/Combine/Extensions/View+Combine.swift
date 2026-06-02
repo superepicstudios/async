@@ -20,13 +20,10 @@ extension View {
         _ publisher: P,
         perform action: @escaping (P.Output) -> Void
     ) -> some View where P.Failure == Never {
-        
         onReceive(publisher) { output in
             withAnimation {
                 action(output)
             }
         }
-        
     }
-    
 }

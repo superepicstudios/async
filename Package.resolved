@@ -1,6 +1,15 @@
 {
-  "originHash" : "983f48b898fde4acb8a05db10d15ccc525b2d00814445da11d4fc8cb7749e799",
+  "originHash" : "b5735bb1916b5ecd4ae755a6339154e52613b761bd9462a4a04de12c7d246ed7",
   "pins" : [
+    {
+      "identity" : "combineext",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CombineCommunity/CombineExt",
+      "state" : {
+        "revision" : "96a7610ca165e027b24710fc2f04c9ba8d2ce0e6",
+        "version" : "1.9.0"
+      }
+    },
     {
       "identity" : "espresso",
       "kind" : "remoteSourceControl",
@@ -15,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-async-algorithms",
       "state" : {
-        "revision" : "042e1c4d9d19748c9c228f8d4ebc97bb1e339b0b",
-        "version" : "1.0.4"
+        "revision" : "9d349bcc328ac3c31ce40e746b5882742a0d1272",
+        "version" : "1.1.3"
       }
     },
     {

@@ -3,6 +3,7 @@
 //  Async
 //
 //  Created by Mitch Treece on 6/21/25.
+//  Copyright © 2025 Super Epic Studios, LLC.
 //
 
 import Synchronization
@@ -13,29 +14,26 @@ extension Mutex {
     public init<T>() where Value == Optional<T> {
         self.init(nil)
     }
-
 }
 
 extension Mutex {
     
-    // We're effectively re-implementing the `ValueManaging` protocol here.
-    // We can't directly conform to it because of associated value `Copyable`
-    // requirements.
-    
+    /// Gets the mutex's protected value.
+    /// - returns: The mutex's protected value.
     public func get() -> Value {
         withLock { $0 }
     }
 
+    /// Sets the mutex's protected value.
+    /// - parameter value: A value.
     public func set(_ value: Value) {
-
-        // Workaround info: https://github.com/swiftlang/swift/issues/77199
-
+        
+        // More info about this workaround
+        // here: https://github.com/swiftlang/swift/issues/77199
         let workaround = { value }
 
         withLock {
             $0 = workaround()
         }
-
     }
-    
 }

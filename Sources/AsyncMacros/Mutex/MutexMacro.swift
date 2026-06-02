@@ -26,16 +26,13 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
         case internalError
 
         public var errorDescription: String? {
-            
             return switch self {
             case .nonVariable: "@\(macroName) can only be applied to variables"
             case .missingType: "@\(macroName) requires an explicit type declaration"
             case .missingInitializer: "@\(macroName) requires an initial value"
             case .internalError: "@\(macroName) encountered an internal error"
             }
-            
         }
-        
     }
     
     ///////////////////////////////////////////////
@@ -54,7 +51,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
     ) throws -> [AccessorDeclSyntax] {
         
         guard let variable = declaration.as(VariableDeclSyntax.self) else {
-            
             // We can only be applied to variables.
             // Throw if we're not a variable declaration.
             
@@ -63,21 +59,17 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                 node: declaration,
                 Error.nonVariable
             )
-                        
         }
         
         guard let binding = variable.bindings.first, variable.bindings.count == 1 else {
-            
             try error(
                 ctx: context,
                 node: variable,
                 Error.internalError
             )
-            
         }
         
         guard let pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
-            
             // We can only be applied to single identifier
             // variables. Throw if we're anything more complex.
             // i.e. tuples, etc.
@@ -87,7 +79,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                 node: binding,
                 Error.internalError
             )
-                        
         }
         
         let privateVariableName = "_\(pattern.identifier.text)"
@@ -98,7 +89,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
         }
         
         return output
-        
     }
         
     ///////////////////////////////////////////////
@@ -115,7 +105,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
     ) throws -> [DeclSyntax] {
         
         guard var variables = declaration.as(VariableDeclSyntax.self) else {
-            
             // We can only be applied to variables.
             // Throw if we're not a variable declaration.
             
@@ -124,13 +113,11 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                 node: declaration,
                 Error.nonVariable
             )
-                        
         }
         
         variables.bindings = try PatternBindingListSyntax(variables.bindings.children(viewMode: .all).map { binding in
                         
             guard var binding = binding.as(PatternBindingSyntax.self) else {
-                
                 // If we get here we should be inside a `VariableDeclSyntax`,
                 // and can cast our bindings to `PatternBindingSyntax`.
                 // If we can't, something went wrong.
@@ -140,11 +127,9 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                     node: binding,
                     Error.internalError
                 )
-                
             }
             
             guard var pattern = binding.pattern.as(IdentifierPatternSyntax.self) else {
-                
                 // We can only be applied to single identifier
                 // variables. Throw if we're anything more complex.
                 // i.e. tuples, etc.
@@ -154,7 +139,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                     node: binding.pattern,
                     Error.internalError
                 )
-                
             }
                         
             // Add underscore ( _ ) prefix to the private variable's name.
@@ -165,7 +149,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
             // Set the private variable's type.
             
             guard var typeAnnotation = binding.typeAnnotation else {
-                
                 // No explicit variable type provided.
                 // We can't infer typings at this point, so it must be provided. i.e.
                 // `@Mutex var value = 0` → `@Mutex var value: Int = 0`
@@ -175,29 +158,24 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                     node: binding,
                     Error.missingType
                 )
-                
             }
             
             var type: TypeSyntax!
             var isOptionalType: Bool = false
             
             if let unwrapped = typeAnnotation.type.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
-                
                 // We're working with an implicitly unwrapped optional.
                 // We need to back-cast to an actual optional.
                 
                 type = .init(OptionalTypeSyntax(wrappedType: unwrapped))
                 isOptionalType = true
-                
             }
             else {
-                
                 type = typeAnnotation.type
                 
                 if let _ = typeAnnotation.type.as(OptionalTypeSyntax.self) {
                     isOptionalType = true
                 }
-                
             }
             
             typeAnnotation.type = "\(raw: privateVariableTypeName)<\(type.trimmed)>"
@@ -206,16 +184,13 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
             // Set the private variable's initializer.
             
             if var initializer = binding.initializer {
-                
                 // We have an initial value, i.e.
                 // `@Mutex var value: Int = 0`
                 
                 initializer.value = ".init(\(initializer.value))"
                 binding.initializer = initializer
-                
             }
             else if isOptionalType {
-                
                 // We don't have an initial value,
                 // but we're an optional. Infer an
                 // initial value of `nil`. i.e.
@@ -223,14 +198,12 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                 // `@Mutex var value: Int?`
                 
                 binding.initializer = .init(value: ".init(nil)" as ExprSyntax)
-                
             }
             else {
-                
                 // We don't have an initial value and we're not an optional, i.e.
                 // `@Mutex var value: Int`
                 //
-                // As of Swift 6.0, there's nothing else we can
+                // As of Swift 6, there's nothing else we can
                 // do here to infer a default value. Once Swift
                 // gets support for semantic macros (on the roadmap),
                 // we could try to check for protocol conformance to
@@ -250,17 +223,14 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                     node: binding,
                     Error.missingInitializer
                 )
-                
             }
             
             return binding
-            
         })
         
         // Remove the @Mutex annotation from the private variable.
 
         variables.attributes = variables.attributes.filter { attribute in
-            
             let annotation = attribute
                 .as(AttributeSyntax.self)?
                 .attributeName
@@ -269,7 +239,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
                 .text
             
             return annotation != privateVariableTypeName
-            
         }
                 
         // Make the private variable a `let` constant
@@ -279,23 +248,19 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
         // Sanitize the private variable's modifiers.
         
         variables.modifiers = variables.modifiers.filter { modifier in
-            
             let name = modifier.trimmed.name.text
             let removedModifiers: Set<String> = ["public", "internal", "fileprivate", "private"]
             let knownModifiers: Set<String> = removedModifiers.union(["nonisolated", "static"])
             
             if !knownModifiers.contains(name) {
-                
                 warning(
                     ctx: context,
                     node: modifier,
                     "@\(macroName) doesn't support the \"\(name)\" modifier. Ignoring."
                 )
-                
             }
             
             return !removedModifiers.contains(name)
-            
         }
         
         // Make the private variable `private`.
@@ -308,7 +273,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
         // Done
         
         return [DeclSyntax(variables)]
-        
     }
     
     // MARK: Private
@@ -325,7 +289,6 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
         ))
         
         throw error
-        
     }
     
     private static func warning(
@@ -338,5 +301,4 @@ public struct MutexMacro: PeerMacro, AccessorMacro {
             message: MacroExpansionErrorMessage(message)
         ))
     }
-    
 }

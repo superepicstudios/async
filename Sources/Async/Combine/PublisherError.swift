@@ -14,5 +14,4 @@ public enum PublisherError: Error {
     /// An error representing empty value access
     /// of a publisher's output sequence.
     case emptyOutput
-    
 }

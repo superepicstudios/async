@@ -19,7 +19,6 @@ extension Publisher where Failure == Never {
     public func asAsync() -> AsyncPublisher<Self> {
         self.values
     }
-    
 }
 
 extension Publisher {
@@ -28,7 +27,6 @@ extension Publisher {
     public func asAsyncThrowing() -> AsyncThrowingPublisher<Self> {
         self.values
     }
-    
 }
 
 // MARK: Tap
@@ -39,7 +37,7 @@ extension Publisher {
     /// - returns: The publisher's latest value.
     ///
     /// - Note: This assumes the publisher has values in its output sequence.
-    ///   If it doesn't, calling this will throw an exception. For example, when
+    ///   If it doesn't, calling this will throw an error . For example, when
     ///   using a ``PassthroughSubject`` and erasing to ``AnyPublisher``, calling
     ///   this will throw a ``PublisherError.emptyStream`` excpetion as ``PassthroughSubject``
     ///   does not buffer its values.
@@ -52,12 +50,10 @@ extension Publisher {
         var cancellables = CancellableSet()
 
         sink { completion in
-
             switch completion {
             case .failure(let e): error = e
             case .finished: break
             }
-
         } receiveValue: { v in
             value = v
         }
@@ -72,7 +68,6 @@ extension Publisher {
         else {
             throw PublisherError.emptyOutput
         }
-        
     }
     
     /// Gets the publisher's latest, _or_ a default value if accessing the latest
@@ -90,38 +85,34 @@ extension Publisher {
     ///   using a ``PassthroughSubject`` and erasing to ``AnyPublisher``, calling
     ///   this will throw a ``PublisherError.emptyStream`` excpetion as ``PassthroughSubject``
     ///   does not buffer its values.
-    public func unsafeTap() -> Output {
+    public func tapUnsafe() -> Output {
         try! tap()
     }
-    
 }
 
 extension Publisher where Output: DefaultValueProviding {
     
-    /// Gets the publisher's latest, _or_ default value if accessing the latest
-    /// value would result in an error.
+    /// Gets the publisher's latest, _or_ default value if accessing the latest value would result in an error.
+    /// - returns: The publisher's latest, _or_ default value.
     func tapOrDefault() -> Output {
         tap(or: Output.defaultValue)
     }
-    
 }
 
 // MARK: Scheduling
 
 extension Publisher {
-
+    
     /// Specifies the main-queue as the receiving scheduler for published elements.
     /// - parameter options: Optional schedular options to use.
     /// - returns: A publisher that delivers elements using the main-queue.
     public func receiveOnMainQueue(
         options: DispatchQueue.SchedulerOptions? = nil
     ) -> Publishers.ReceiveOn<Self, DispatchQueue> {
-
         receive(
             on: .main,
             options: options
         )
-
     }
     
     /// Specifies the main run-loop as the receiving scheduler for published elements.
@@ -130,14 +121,11 @@ extension Publisher {
     public func receiveOnMainLoop(
         options: RunLoop.SchedulerOptions? = nil
     ) -> Publishers.ReceiveOn<Self, RunLoop> {
-        
         receive(
             on: .main,
             options: options
         )
-
     }
-    
 }
 
 // MARK: Weak
@@ -154,12 +142,10 @@ extension Publisher {
         capturing object: T,
         onValue: @escaping (T?, Output) -> Void
     ) -> AnyCancellable {
-        
         sink(
             receiveCompletion: { _ in },
             receiveValue: { [weak object] in onValue(object, $0) }
         )
-        
     }
     
     /// Weakily assigns each element from the publisher to a property on an object.
@@ -172,63 +158,50 @@ extension Publisher {
         to keyPath: ReferenceWritableKeyPath<T, Output>,
         on object: T
     ) -> AnyCancellable {
-        
         weakSink(capturing: object) { weakObject, value in
             weakObject?[keyPath: keyPath] = value
         }
-        
     }
-    
 }
 
 // MARK: Guard
 
 extension Publisher where Output: OptionalRepresentable {
     
+    /// Filters out optional outputs from the publisher sequence.
     public func `guard`() -> AnyPublisher<Output.Wrapped, Failure> {
-        
         filter { $0.wrappedValue != nil }
             .map { $0.wrappedValue! }
             .eraseToAnyPublisher()
-        
     }
-    
 }
 
 // MARK: Equals
 
 extension Publisher where Output: Equatable {
     
-    /// Filters non-equivalent outputs out of the publisher sequence.
+    /// Filters out non-equivalent outputs from the publisher sequence.
     public func equals(_ value: Output) -> AnyPublisher<Output, Failure> {
-        
-        filter { $0 == value }
-            .eraseToAnyPublisher()
-        
+        filter { $0 == value }.eraseToAnyPublisher()
     }
     
-    /// Filters equivalent outputs out of the publisher sequence.
+    /// Filters out equivalent outputs from the publisher sequence.
     public func notEquals(_ value: Output) -> AnyPublisher<Output, Failure> {
-        
-        filter { $0 != value }
-            .eraseToAnyPublisher()
-        
+        filter { $0 != value }.eraseToAnyPublisher()
     }
-    
 }
 
 // MARK: Bool
 
 extension Publisher where Output == Bool {
     
-    /// Filters `false` outputs out of a publisher sequence.
+    /// Filters out `false` outputs from the publisher sequence.
     public func isTrue() -> AnyPublisher<Output, Failure> {
         equals(true)
     }
     
-    /// Filters `true` outputs out of a publisher sequence.
+    /// Filters out `true` outputs from the publisher sequence.
     public func isFalse() -> AnyPublisher<Output, Failure> {
         equals(false)
     }
-
 }
