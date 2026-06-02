@@ -9,7 +9,7 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 - [⬇️ Installation](#-installation)
 - [📁 Structure](#-structure)
 - [🌊 Streams](#-streams)
-- [📡 Relays](#-relays)
+- [📡 Relays & Drivers](#-relays-&-drivers)
 - [😶‍🌫️ Erasure](#-erasure)
 - [📦 Property Wrappers](#property-wrappers)
 - [🤝🏻 TaskActor](#-taskactor)
@@ -43,29 +43,231 @@ This package is split into three distinct modules:
 
 ## 🌊 Streams
 
-> [!NOTE]
-> TODO: Stream overview
+Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and Combine's [Publisher](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, and help bridge the gap between [Combine](https://developer.apple.com/documentation/combine) and modern async api's. In addition to `AsyncSequence` and `Publisher` conformance, they also have a wide range of built-in helpers, shortcuts, and syntax sugar. Streams come in several different flavors that both extend, and reflect the various Combine [subjects](https://developer.apple.com/documentation/combine/subject).
 
-### ReplayStream
-### ValueStream
-### Driver
-### PassthroughStream
-### SignalStream
-### JustStream
-### EmptyStream
+### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift)
 
-## 📡 Relays
+An observable stream that replays a buffered amount of elements to downstream consumers.
 
-> [!NOTE]
-> TODO: Relay overview + explain how they're not a concrete type, and lead into next erasure section
+```swift
+let stream = ReplayStream<Int, Never>(2)
+
+stream.send(1)
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+Task { 
+    for try await e in stream {
+        print("Received: \(e)")
+    }
+    print("Finished")
+}
+
+// → "Received: 2"
+// → "Received: 3"
+// → "Finished"
+```
+
+### [ValueStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ValueStream.swift)
+
+An observable stream that buffers a single element, and sends it to downstream consumers.
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+
+Task {
+    for try await e in stream {
+        print("Received: \(e)")
+    }
+    print("Finished")
+}
+
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+// → "Finished"
+```
+
+### [PassthroughStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PassthroughStream.swift)
+
+An observable stream that doesn't buffer elements, and sends new ones to downstream consumers.
+
+```swift
+let stream = PassthroughStream<Int, Never>()
+
+stream.send(1) // Dropped (no consumers)
+
+Task {
+    for try await e in stream {
+        print("Received: \(e))
+    }
+    print("Finished")
+}
+
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+// → "Received: 2"
+// → "Received: 3"
+// → "Finished"
+```
+
+### [SignalStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/SignalStream.swift)
+
+An observable stream that sends signals to downstream consumers.
+
+```swift
+let stream = SignalStream<Never>()
+
+Task {
+    for try await _ in stream {
+        print("Received")
+    }
+    print("Finished")
+}
+
+stream.send()
+stream.send(completion: .finished)
+
+// → "Received"
+// → "Finished"
+```
+
+### [JustStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/JustStream.swift)
+
+An observable stream that buffers a single constant element, and sends it to downstream consumers.
+
+```swift
+let stream = JustStream<Int>(0)
+
+Task {
+    for await e in stream {
+        print("Received: \(e)")
+    }
+}
+
+// → "Received: 0"
+```
+
+### [EmptyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/EmptyStream.swift)
+
+An observable stream that produces no elements.
+
+```swift
+let stream = EmptyStream()
+
+Task {
+    for await _ in stream {
+        print("Received") // Never called
+    }
+}
+```
+
+## 📡 Relays & Drivers
+
+Streams are already easy to work with, but we don't always need the failure semantics they carry. When working in no-failure situations, we can leverage the specialized non-failable `Relay` and `Driver` stream types.
+
+### Relays
+
+Simply put, relays are just streams that *never* produce failures. Or rather, they either never produce, or swallow errors internally. Relays are not concrete stream types like the ones shown above. Instead, you _erase_ existing streams into relays. More on that in the next section.
+
+### [Driver](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/Driver.swift)
+
+Drivers are specialized observable streams that buffer a single element, send it to downstream consumers, never produces failures, and guarantee delivery on the main-actor. Unlike relays, drivers _are_ concrete stream types, and can be used similarly to the ones hows above.
+
+```swift
+let driver = Driver<Int>(1)
+
+driver.observeOnMain { e in
+    print("Received: \(e)")
+}
+
+driver.send(2)
+driver.send(3)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+```
 
 ## 😶‍🌫️ Erasure
 
-### AnyStream
-### AnyRelay
-### AnyDriver
+In a similar fashion to a Combine publisher's [eraseToAnyPublisher()](https://developer.apple.com/documentation/combine/publisher/erasetoanypublisher()), all streams support some form of type-erasure. Depending on the source stream, erasure is achieved via `eraseToAnyStream()`, `eraseToAnyRelay()`, or `eraseToAnyDriver()`.
+
+### [AnyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyStream.swift)
+
+A type-erased observable stream of elements.
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+let erased: AnyStream<Int, Never> = stream.eraseToAnyStream()
+
+Task {
+    for try await e in erased {
+        print("Received: \(e)")
+    }
+}
+
+stream.send(2)
+stream.send(3)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+```
+
+### [AnyRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyRelay.swift)
+
+A type-erased observable stream of elements that never produces failures.
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+let erased: AnyRelay<Int> = stream.eraseToAnyRelay()
+
+Task {
+    for await e in erased {
+        print("Received: \(e)")
+    }
+}
+
+stream.send(2)
+stream.send(3)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+```
+
+### [AnyDriver](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyDriver.swift)
+
+A type-erased observable stream of elements that never produces failures, and guarantees delivery on the main-actor.
+
+```swift
+let driver = Driver<Int>(1)
+let erased: AnyDriver<Int> = driver.eraseToAnyDriver()
+
+erased.observeOnMain { e in
+    print("Received: \(e)")
+}
+
+driver.send(2)
+driver.send(3)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+```
 
 ## 📦 Property Wrappers
+
+> [!NOTE]
+> TODO: Property wrapper overview
 
 > [!CAUTION]
 > TODO: Explain Swift 6 sendability issues
@@ -109,8 +311,9 @@ class ValueProvider {
 
 #### [SignalSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Subjects/SignalSubject.swift)
 
+A subject that sends signals to downstream subscribers.
+
 ```swift
-// Broadcasts signals to downstream subscribers.
 let subject = SignalSubject()
 
 subject.sink { _ in
@@ -124,22 +327,25 @@ subject.send()
 
 #### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeCurrentValueSubject.swift)
 
+A [CurrentValueSubject](https://developer.apple.com/documentation/combine/currentvaluesubject) that can never fail.
+
 ```swift
-// A `CurrentValueSubject` that can never fail
 let subject = GuaranteeCurrentValueSubject<Int>(0)
 ```
 
 #### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteePassthroughSubject.swift)
 
+A [PassthroughSubject](https://developer.apple.com/documentation/combine/passthroughsubject) that can never fail.
+
 ```swift
-// A `PassthroughSubject` that can never fail
 let subject = GuaranteePassthroughSubject<Int>()
 ```
 
 #### [GuaranteeReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeReplaySubject.swift)
 
+A [ReplaySubject](https://github.com/CombineCommunity/CombineExt/blob/main/Sources/Subjects/ReplaySubject.swift) that can never fail.
+
 ```swift
-// A [ReplaySubject](https://github.com/CombineCommunity/CombineExt/blob/main/Sources/Subjects/ReplaySubject.swift) that can never fail.
 let subject = GuaranteeReplaySubject<Int>(buffering: 1)
 ```
 

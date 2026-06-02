@@ -47,35 +47,35 @@ import Foundation
 /// }
 /// ```
 ///
-/// - SeeAlso: ``AnyRelay``, ``AnyStream``
+/// - SeeAlso: ``Driver``
 public struct AnyDriver<Element: Sendable>: StreamProtocol, StreamElementProviding, Sendable {
-    
+
     public typealias Output = Element
     public typealias Failure = Never
     public typealias Base = Driver<Element>
     public typealias AsyncIterator = Base.AsyncIterator
-    
+
 //    @MainActor
     public var latest: Element {
         self.wrapped.latest
     }
-    
+
     private let wrapped: Base
-    
+
     /// Initializes a type-erased driver.
     /// - parameter wrapped: A driver to wrap.
     public init(_ wrapped: Base) {
         self.wrapped = wrapped
     }
-    
+
     // MARK: AsyncSeqauence
-    
+
     public func makeAsyncIterator() -> AsyncIterator {
         self.wrapped.makeAsyncIterator()
     }
-    
+
     // MARK: Publisher
-    
+
     public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Element == S.Input {
         self.wrapped.receive(subscriber: subscriber)
     }
@@ -84,7 +84,7 @@ public struct AnyDriver<Element: Sendable>: StreamProtocol, StreamElementProvidi
 // MARK: Sending
 
 extension AnyDriver: StreamElementSending {
-    
+
     public func send(_ element: Element) {
         self.wrapped.send(element)
     }
@@ -93,7 +93,7 @@ extension AnyDriver: StreamElementSending {
 // MARK: Observing
 
 extension AnyDriver: NonFailableStreamMainObserving {
-    
+
     @discardableResult
     public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
         Task(priority: .high) {

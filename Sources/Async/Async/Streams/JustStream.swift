@@ -9,25 +9,37 @@
 import Foundation
 
 /// An observable stream that buffers a single constant element, and broadcasts it to downstream consumers.
+///
+/// ```swift
+/// let stream = JustStream<Int>(0)
+///
+/// Task {
+///     for await e in stream {
+///         print("Received: \(e)")
+///     }
+/// }
+///
+/// // → "Received: 0"
+/// ```
 public final class JustStream<Element: Sendable>: StreamProtocol, StreamElementProviding, StreamErasing, Sendable {
-    
+
     public typealias Output = Element
     public typealias Base = AnyRelay<Element>
     public typealias AsyncIterator = Base.AsyncIterator
-    
+
     public var latest: Element {
         self.base.latest
     }
-    
+
     private let base: Base
-    
+
     /// Initializes a just stream.
     /// - parameter element: A constant element.
     public init(_ element: Element) {
         let stream = ValueStream<Element, Never>(element)
         self.base = .init(stream.eraseToAnyRelay())
     }
-    
+
     // MARK: AsyncSequence
 
     public func makeAsyncIterator() -> AsyncIterator {

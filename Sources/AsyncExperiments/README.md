@@ -43,7 +43,7 @@ channel.send(.finished)
 
 ## 📚 Async Subjects
 
-Building off buffered channels, async subjects provide a declarative way to send data to downstream consumers. However, unlike channels, async subjects broadcast their elements (i.e. _share_, _multicast_) to any amount of consumers. If you're familiar with [Combine](https://developer.apple.com/documentation/combine) subjects, these are their async counterparts. `Async` adds these async subjects types:
+Building off buffered channels, async subjects provide a declarative way to send data to downstream consumers. However, unlike channels, async subjects broadcast their elements (i.e. _share_, _multicast_) to any amount of consumers. If you're familiar with [Combine](https://developer.apple.com/documentation/combine) subjects, these are their async counterparts. Async adds these async subjects types:
 
 ### [AsyncReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Subjects/AsyncReplaySubject.swift)
 
