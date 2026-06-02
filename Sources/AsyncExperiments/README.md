@@ -1,6 +1,6 @@
 # 👨🏻‍🔬 AsyncExperiments
 
-This directory contains experimental code that is not yet (and might never be) pulled into `Async`.
+This module contains experimental code that is not yet (and might never be) pulled into `Async`.
 Stuff here is **not** battle-tested, and should not be used in production environments.
 
 ## 🎁 PropertyWrappers

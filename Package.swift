@@ -11,7 +11,8 @@ let package = Package(
     ],
     products: [
         .library(for: .async),
-        .library(for: .asyncExperiments)
+        .library(for: .asyncExperiments),
+        .library(for: .asyncTesting)
     ],
     dependencies: [
         .asyncAlgorithms,
@@ -23,7 +24,8 @@ let package = Package(
     targets: [
         .async, .unitTests(for: .async),
         .asyncExperiments, .unitTests(for: .asyncExperiments),
-        .asyncMacros, .unitTests(for: .asyncMacros)
+        .asyncMacros, .unitTests(for: .asyncMacros),
+        .asyncTesting, .unitTests(for: .asyncTesting)
     ],
     swiftLanguageModes: [.v6]
 )
@@ -93,6 +95,12 @@ extension Target {
             .swiftSyntaxMacros,
             .swiftCompilerPlugin
         ],
+        swiftSettings: .default
+    )
+
+    static let asyncTesting: Target = .target(
+        name: "AsyncTesting",
+        dependencies: [],
         swiftSettings: .default
     )
 

@@ -60,9 +60,10 @@ Developing your own package and want to depend on `Async`? Just add a package en
 
 ## 📁 Structure
 
-This package is split into two distinct modules:
+This package is split into three distinct modules:
 
 - `Async`: Core module containing stable types & features.
+- [AsyncTesting](./Sources/AsyncTesting/README.md): Module containing async testing support & helpers.
 - [AsyncExperiments](./Sources/AsyncExperiments/README.md): Module containing experimental/unstable types & features.
   Code in this module is subject to change, and may not ever be released.
 
