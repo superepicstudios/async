@@ -6,45 +6,15 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 
 ## 📖 Table of COntents
 
-▶︎ [⬇️ Installation](#-installation)\
-▶︎ [📁 Structure](#-structure)
-<details><summary>🌊 Streams</summary>
-  - [ReplayStream](#replaystream)
-  - [ValueStream](#valuestream)
-  - [Driver](#driver)
-  - [PassthroughStream](#passthroughstream)
-  - [SignalStream](#signalstream)
-  - [JustStream](#juststream)
-  - [EmptyStream](#emptystream)
-</details>
-
+- [⬇️ Installation](#-installation)
+- [📁 Structure](#-structure)
 - [🌊 Streams](#-streams)
-  - [ReplayStream](#replaystream)
-  - [ValueStream](#valuestream)
-  - [Driver](#driver)
-  - [PassthroughStream](#passthroughstream)
-  - [SignalStream](#signalstream)
-  - [JustStream](#juststream)
-  - [EmptyStream](#emptystream)
 - [📡 Relays](#-relays)
 - [😶‍🌫️ Erasure](#-erasure)
-  - [AnyStream](#anystream)
-  - [AnyRelay](#anyrelay)
-  - [AnyDriver](#anydriver)
 - [📦 Property Wrappers](#property-wrappers)
-  - [@Streamed](#@streamed)
-  - [@Stream](#@stream)
-  - [@Relay](#@relay)
-  - [@Drive](#@drive)
-  - [@Passthrough](#@passthrough)
-  - [@PassthroughRelay](#@passthroughrelay)
-  - [@Signal](#@signal)
-  - [@SignalRelay](#@signalrelay)
-  - [@Pipe](#@pipe)
 - [🤝🏻 TaskActor](#-taskactor)
 - [🔀 Combine](#-combine)
 - [🧵 Thread Safety](#-thread-safety)
-  - [🔒 @Mutex](#-@mutex)
 - [👨🏻‍💻 Contributing](#-contributing)
 
 ## ⬇️ Installation
