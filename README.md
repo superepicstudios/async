@@ -15,6 +15,7 @@ Async data-over-time (DoT), flow, & extension library that builds on the amazing
 - [🤝🏻 TaskActor](#-taskactor)
 - [🔀 Combine](#-combine)
 - [🧵 Thread Safety](#-thread-safety)
+- [🗺️ Roadmap](#-roadmap)
 - [👨🏻‍💻 Contributing](#-contributing)
 
 ## ⬇️ Installation
@@ -171,6 +172,15 @@ Under the hood, this macro generates & maintains a mutex for you. All `get` & `s
     set { _value.withLock { $0 = newValue }}
 }
 ```
+
+## 🗺️ Roadmap
+
+- [x] `0.0.1` (Initial Release)
+- [ ] `0.1.0` (Stable Beta Release)
+- [ ] `1.0.0` (Official Release)
+  - [ ] Full documentation pass
+  - [ ] Full test-coverage pass
+  - [ ] Finalize demo project
 
 ## 👨🏻‍💻 Contributing
 
