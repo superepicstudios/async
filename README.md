@@ -179,7 +179,7 @@ Simply put, relays are just streams that *never* produce failures. Or rather, th
 
 ### [Driver](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/Driver.swift)
 
-Drivers are specialized observable streams that buffer a single element, send it to downstream consumers, never produces failures, and guarantee delivery on the main-actor. Unlike relays, drivers _are_ concrete stream types, and can be used similarly to the ones hows above.
+Drivers are specialized observable streams that buffer a single element, send it to downstream consumers, never produces failures, and guarantee delivery on the main-actor. Unlike relays, drivers _are_ concrete stream types, and can be used similarly to the ones shown above.
 
 ```swift
 let driver = Driver<Int>(1)
@@ -198,7 +198,11 @@ driver.send(3)
 
 ## 😶‍🌫️ Erasure
 
-In a similar fashion to a Combine publisher's [eraseToAnyPublisher()](https://developer.apple.com/documentation/combine/publisher/erasetoanypublisher()), all streams support some form of type-erasure. Depending on the source stream, erasure is achieved via `eraseToAnyStream()`, `eraseToAnyRelay()`, or `eraseToAnyDriver()`.
+In a similar fashion to a Combine publisher's [eraseToAnyPublisher()](https://developer.apple.com/documentation/combine/publisher/erasetoanypublisher()), all streams support some form of type-erasure. Depending on the source stream, erasure is achieved via:
+
+- `eraseToAnyStream()`
+- `eraseToAnyRelay()`
+- `eraseToAnyDriver()`
 
 ### [AnyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyStream.swift)
 
