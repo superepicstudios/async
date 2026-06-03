@@ -2,10 +2,12 @@
 
 Async testing support & helpers.
 
-## 🔀 TestablePublisher
+## 🔀 [TestablePublisher](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncTesting/Combine/TestablePublisher.swift)
+
+A publisher that wraps another publisher, and exposes testing functions & helpers.
 
 ```swift
-let subject = GuaranteeCurrentValueSubject<Int>(1)
+let subject = CurrentValueSubject<Int, Never>(1)
 let sut = subject.testable()
 
 subject.send(2)

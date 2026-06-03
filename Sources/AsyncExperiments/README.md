@@ -1,7 +1,6 @@
 # 👨🏻‍🔬 AsyncExperiments
 
-This module contains experimental code that is not yet (and might never be) pulled into the core Async module.
-Stuff here is **not** battle-tested, and should not be used in production environments.
+This module contains experimental code that is not yet (and might never be) pulled into the core Async module. Stuff here is _not_ stable or battle-tested, and should not be used in production environments.
 
 ## 📖 Table of Contents
 
@@ -39,7 +38,9 @@ channel.send(.finished)
 // → "Finished"
 ```
 
-**Note**: [AsyncExtensions](https://github.com/sideeffect-io/AsyncExtensions) also contains its own implementations for `AsyncBufferedChannel` & `AsyncThrowingBufferedChannel`. We've opted to roll our own (though heavily inspired by them) to reduce library overlap.
+> [!NOTE]
+> [AsyncExtensions](https://github.com/sideeffect-io/AsyncExtensions) also contains its own implementations for `AsyncBufferedChannel` & `AsyncThrowingBufferedChannel`.
+> We've opted to roll our own (though heavily inspired by them) to reduce library overlap.
 
 ## 📚 Async Subjects
 
@@ -47,8 +48,9 @@ Building off buffered channels, async subjects provide a declarative way to send
 
 ### [AsyncReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Subjects/AsyncReplaySubject.swift)
 
+An async subject that replays a buffered amount of elements to downstream consumers.
+
 ```swift
-// Replays a buffered amount of elements to downstream consumers.
 let subject = AsyncReplaySubject<Int>(2)
 
 subject.send(1)
@@ -70,8 +72,9 @@ Task {
 
 ### [AsyncCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Subjects/AsyncCurrentValueSubject.swift)
 
+An async subject that buffers a single element, and sends it to downstream consumers.
+
 ```swift
-// Buffers a single element, and broadcasts it to downstream consumers.
 let subject = AsyncCurrentValueSubject<Int>(1)
 
 Task {
@@ -93,10 +96,10 @@ subject.send(.finished)
 
 ### [AsyncPassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Subjects/AsyncPassthroughSubject.swift)
 
-```swift
-// Broadcasts new elements to downstream consumers.
-let subject = AsyncPassthroughSubject<Int>()
+An async subject that sends new elements to downstream consumers.
 
+```swift
+let subject = AsyncPassthroughSubject<Int>()
 subject.send(1) // Dropped (no consumers)
 
 Task {
@@ -117,8 +120,9 @@ subject.send(.finished)
 
 ### [AsyncSignalSubject](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Subjects/AsyncSignalSubject.swift)
 
+An async subject that sends signals to downstream consumers.
+
 ```swift
-// Broadcasts signals to downstream consumers.
 let subject = AsyncSignalSubject()
 
 Task {
@@ -137,7 +141,7 @@ subject.send(.finished)
 
 ### ⚠️ Critical
 
-When tracking critical state or values, it's important to protect against scenarios that could potentially introduce unsafe read & write operations. Different threads attempting to access a single value at the same time can be a recipe for disaster. Async adds a foundational [Critical](https://github.com/superepicstudios/Async/blob/main/Sources/Experiments/Critical.swift) type that helps protect against these scanarios.
+When tracking critical state or values, it's important to protect against scenarios that could potentially introduce unsafe read & write operations. Different threads attempting to access a single value at the same time can be a recipe for disaster. Async adds a foundational [Critical](https://github.com/superepicstudios/Async/blob/main/Sources/AsyncExperiments/Critical.swift) type that helps protect against these scanarios.
 
 ```swift
 let critical = Critical<Int>(0)
@@ -151,8 +155,6 @@ value = critical.get()
 print(value) // 1
 ```
 
-**Note**: This is a public re-implementation of [ManagedCriticalState](https://github.com/apple/swift-async-algorithms/blob/main/Sources/AsyncAlgorithms/Locking.swift#L131) from `AsyncAlgorithms`. If `ManagedCriticalState` is ever made public, this will likely be migrated to a typealias:
-
-```swift
-public typealias Critical<Value> = ManagedCriticalState<Value>
-```
+> [!NOTE]
+> This is a public re-implementation of [ManagedCriticalState](https://github.com/apple/swift-async-algorithms/blob/main/Sources/AsyncAlgorithms/Locking.swift#L131) from `AsyncAlgorithms`.
+> If `ManagedCriticalState` is ever made public, this will likely be migrated to a typealias.
