@@ -21,34 +21,52 @@ import Foundation
 ///
 /// // → "Received: 0"
 /// ```
-public final class JustStream<Element: Sendable>: StreamProtocol, StreamElementProviding, StreamErasing, Sendable {
-
-    public typealias Output = Element
-    public typealias Base = AnyRelay<Element>
-    public typealias AsyncIterator = Base.AsyncIterator
-
-    public var latest: Element {
-        self.base.latest
+public final class JustStream<Element: Sendable>: NonFailableStream {
+    
+    public var publisher: any Publisher<Element, Never> {
+        self.base.publisher
     }
-
-    private let base: Base
-
-    /// Initializes a just stream.
-    /// - parameter element: A constant element.
+    
+    private let base: ValueStream<Element, Never>
+    
     public init(_ element: Element) {
-        let stream = ValueStream<Element, Never>(element)
-        self.base = .init(stream.eraseToAnyRelay())
+        self.base = .init(element)
     }
-
-    // MARK: AsyncSequence
-
-    public func makeAsyncIterator() -> AsyncIterator {
-        self.base.makeAsyncIterator()
+    
+    public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
+        self.base.makeAsyncSequence()
     }
+}
 
-    // MARK: Publisher
+// MARK: Erasing
 
-    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        self.base.receive(subscriber: subscriber)
+extension JustStream: NonFailableStreamErasing {}
+
+// MARK: Sequencing
+
+extension JustStream: StreamSequencing, StreamMainSequencing {}
+
+// MARK: Observing
+
+extension JustStream: NonFailableStreamObserving, NonFailableStreamMainObserving {
+
+    @discardableResult
+    public func observe(
+        priority: TaskPriority,
+        receiveElement: @escaping @Sendable (Element) async -> Void
+    ) -> Task<Void, Never> {
+        self.base.observe(
+            priority: priority,
+            receiveElement: receiveElement,
+            receiveFailure: nil
+        )
+    }
+    
+    @discardableResult
+    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
+        self.base.observeOnMain(
+            receiveElement: receiveElement,
+            receiveFailure: nil
+        )
     }
 }

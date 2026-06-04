@@ -5,7 +5,7 @@
 //  Created by Mitch Treece on 5/25/25.
 //
 
-@testable import Async
+@testable import AsyncExperiments
 import Testing
 
 @Suite

@@ -32,49 +32,44 @@ import Foundation
 /// ```
 ///
 /// - SeeAlso: ``CurrentValueSubject``
-public final class ValueStream<Element: Sendable, Failure: Error>: StreamProtocol, StreamElementProviding, StreamErasing {
 
-    public typealias Output = Element
-    public typealias Base = ReplayStream<Element, Failure>
-    public typealias AsyncIterator = Base.AsyncIterator
+public final class ValueStream<Element: Sendable, Failure: Error>: FailableStream {
     
-    public var latest: Element {
-        self.base.latest
+    public var publisher: any Publisher<Element, Failure> {
+        self.base.publisher
     }
     
-    private let base = Base(1)
-
-    /// Initializes a value stream.
-    /// - parameter initial: An initial element.
+    private let base = ReplayStream<Element, Failure>(buffering: 1)
+    
     public init(_ initial: Element) {
         self.base.send(initial)
     }
-
-    // MARK: AsyncSequence
-
-    public func makeAsyncIterator() -> AsyncIterator {
-        self.base.makeAsyncIterator()
-    }
-
-    // MARK: Publisher
-
-    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        self.base.receive(subscriber: subscriber)
+    
+    public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure> {
+        self.base.makeAsyncSequence()
     }
 }
 
 // MARK: Sending
 
-extension ValueStream: StreamElementSending, StreamCompletionSending {
+extension ValueStream: StreamElementSending, FailableStreamCompletionSending {
     
     public func send(_ element: Element) {
         self.base.send(element)
     }
-
+    
     public func send(completion: Subscribers.Completion<Failure>) {
         self.base.send(completion: completion)
     }
 }
+
+// MARK: Erasing
+
+extension ValueStream: FailableStreamErasing {}
+
+// MARK: Sequencing
+
+extension ValueStream: StreamSequencing, StreamMainSequencing {}
 
 // MARK: Observing
 
@@ -84,23 +79,32 @@ extension ValueStream: FailableStreamObserving, FailableStreamMainObserving {
     public func observe(
         priority: TaskPriority,
         receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveError: (@Sendable (Failure) async -> Void)?
+        receiveFailure: (@Sendable (Failure) async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observe(
             priority: priority,
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
     }
     
     @discardableResult
     public func observeOnMain(
         receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveError: (@MainActor (Failure) async -> Void)?
+        receiveFailure: (@MainActor (Failure) async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observeOnMain(
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
+    }
+}
+
+// MARK: Element Providing
+
+extension ValueStream: StreamElementProviding {
+    
+    public var latest: Element {
+        self.base.latest
     }
 }

@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "5C9974C4-42C1-407D-8C51-3BC733D5EA0C",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "AsyncMacrosTests",
+        "name" : "AsyncMacrosTests"
+      }
+    }
+  ],
+  "version" : 1
+}

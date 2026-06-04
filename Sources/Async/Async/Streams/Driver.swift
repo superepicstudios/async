@@ -9,7 +9,7 @@
 @preconcurrency public import Combine
 import Foundation
 
-/// A specialized observable stream that buffers a single element, broacasts it to downstream consumers,
+/// A specialized stream that buffers a single element, sends it to downstream consumers,
 /// never produces failures, and guarantees delivery on the main-actor.
 ///
 /// This is similar to ``AnyRelay``, except that element delivery is always isolated to the main-actor.
@@ -31,75 +31,37 @@ import Foundation
 ///
 /// - Warning: While element **delivery** is guaranteed to be main-actor isolated,
 ///   that same isolation cannot be enforced for ``AsyncSequence`` **observation**.
-///   It's recommended to use ``observeOnMain(receiveElement:)`` or ``sink(receiveValue:)``
-///   as these guarantee main-actor isolation for delivery **and** observation.
+///   It's recommended to use ``observeOnMain(receiveElement:)`` as this guarantees
+///   main-actor isolation for delivery **and** observation.
 ///
 /// - SeeAlso: ``ValueStream``, ``AnyRelay``
-public final class Driver<Element: Sendable>: AsyncSequence, Publisher, StreamElementProviding, Sendable {
+public final class Driver<Element: Sendable>: NonFailableStream {
     
-    public typealias Output = Element
-    public typealias Failure = Never
-    public typealias AsyncIterator = AsyncStream<Element>.AsyncIterator
-    
-//    @MainActor
-    public var latest: Element {
-        self.stream.latest
+    public var publisher: any Publisher<Element, Never> {
+        MainQueuePublisher<Element, Never>(self.base.publisher)
     }
     
-    private let stream: ValueStream<Element, Never>
+    private let base: ValueStream<Element, Never>
     
-    /// Initializes a driver stream.
-    /// - parameter initial: An initial element.
     public init(_ initial: Element) {
-        self.stream = ValueStream<Element, Never>(initial)
+        self.base = .init(initial)
     }
     
-    // MARK: AsyncSequence
-    
-    public func makeAsyncIterator() -> AsyncStream<Element>.AsyncIterator {
-        AsyncStream<Element> { continuation in
-            let task = Task {
-                for await element in self.stream {
-                    _ = await MainActor.run {
-                        continuation.yield(element)
-                    }
-                }
-                await MainActor.run {
-                    continuation.finish()
-                }
-            }
-            continuation.onTermination = { _ in
-                task.cancel()
-            }
-        }
-        .makeAsyncIterator()
-    }
-    
-    // MARK: Publisher
-    
-    public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Element == S.Input {
-        self.stream
-//            .catch { _ in Empty<Element, Never>() }
-            .receive(on: DispatchQueue.main)
-            .receive(subscriber: subscriber)
+    public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
+        AsyncMainActorSequence<Element, Never>(self.base.makeAsyncSequence())
     }
 }
 
 // MARK: Sending
 
-extension Driver: StreamElementSending {
-    public func send(_ element: Element) {
-        self.stream.send(element)
-    }
-}
-
-// MARK: Observing
-
-extension Driver: NonFailableStreamMainObserving {
+extension Driver: StreamElementSending, NonFailableStreamCompletionSending {
     
-    @discardableResult
-    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
-        self.stream.observeOnMain(receiveElement: receiveElement)
+    public func send(_ element: Element) {
+        self.base.send(element)
+    }
+    
+    public func send(completion: Subscribers.Completion<Never>) {
+        self.base.send(completion: completion)
     }
 }
 
@@ -107,7 +69,33 @@ extension Driver: NonFailableStreamMainObserving {
 
 extension Driver {
     
-    public func eraseToAnyDriver() -> AnyDriver<Element> {
+    func eraseToAnyDriver() -> AnyDriver<Element> {
         AnyDriver(self)
+    }
+}
+
+// MARK: Sequencing
+
+extension Driver: StreamMainSequencing {}
+
+// MARK: Observing
+
+extension Driver: NonFailableStreamMainObserving {
+    
+    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
+        self.base.observeOnMain(
+            receiveElement: receiveElement,
+            receiveFailure: nil
+        )
+    }
+}
+
+// MARK: Element Providing
+
+extension Driver: StreamElementProviding {
+    
+    // @MainActor
+    public var latest: Element {
+        self.base.latest
     }
 }

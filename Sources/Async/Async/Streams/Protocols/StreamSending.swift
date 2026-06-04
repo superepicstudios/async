@@ -26,8 +26,8 @@ extension StreamElementSending where Element == Void {
     func send() { send(()) }
 }
 
-/// Protocol describing a stream that sends completions to downstream consumers.
-public protocol StreamCompletionSending<Failure>: Sendable {
+/// Protocol describing a failable stream that sends completions to downstream consumers.
+public protocol FailableStreamCompletionSending<Failure>: Sendable {
     
     /// The stream's failure type.
     associatedtype Failure: Error
@@ -37,4 +37,14 @@ public protocol StreamCompletionSending<Failure>: Sendable {
     ///
     /// - Note: This induces a terminal state from which no further elements can be sent.
     func send(completion: Subscribers.Completion<Failure>)
+}
+
+/// Protocol describing a non-failable stream that sends completions to downstream consumers.
+public protocol NonFailableStreamCompletionSending: Sendable {
+    
+    /// Sends a completion to downstream consumers.
+    /// - parameter completion: A completion.
+    ///
+    /// - Note: This induces a terminal state from which no further elements can be sent.
+    func send(completion: Subscribers.Completion<Never>)
 }

@@ -19,7 +19,7 @@ import Foundation
 ///
 /// stream.observe { element in
 ///     print("Observed: \(element)"
-/// } receiveError: { error in
+/// } receiveFailure: { error in
 ///     print("Error: \(error)")
 /// }
 ///
@@ -43,13 +43,13 @@ public protocol FailableStreamObserving<Element, Failure> {
     /// Observes the stream.
     /// - parameter priority: An observation task priority.
     /// - parameter receiveElement: A closure called when the stream receives elements.
-    /// - parameter receiveError: A closure called when the stream receives an error.
+    /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
     func observe(
         priority: TaskPriority,
         receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveError: (@Sendable (Failure) async -> Void)?
+        receiveFailure: (@Sendable (Failure) async -> Void)?
     ) -> Task<Void, Never>
 }
 
@@ -58,18 +58,18 @@ extension FailableStreamObserving {
     /// Observes the stream.
     /// - parameter priority: An observation task priority.
     /// - parameter receiveElement: A closure called when the stream receives elements.
-    /// - parameter receiveError: A closure called when the stream receives an error.
+    /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
     public func observe(
         priority: TaskPriority = .medium,
         receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveError: (@Sendable (Failure) async -> Void)? = nil
+        receiveFailure: (@Sendable (Failure) async -> Void)? = nil
     ) -> Task<Void, Never> {
         observe(
             priority: priority,
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
     }
 }
@@ -85,7 +85,7 @@ extension FailableStreamObserving {
 ///
 /// stream.observeOnMain { element in
 ///     print("Observed: \(element)"
-/// } receiveError: { error in
+/// } receiveFailure: { error in
 ///     print("Error: \(error)")
 /// }
 ///
@@ -108,12 +108,12 @@ public protocol FailableStreamMainObserving<Element, Failure> {
     
     /// Observes the stream on the main-actor.
     /// - parameter receiveElement: A closure called when the stream receives elements.
-    /// - parameter receiveError: A closure called when the stream receives an error.
+    /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
     func observeOnMain(
         receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveError: (@MainActor (Failure) async -> Void)?
+        receiveFailure: (@MainActor (Failure) async -> Void)?
     ) -> Task<Void, Never>
 }
 
@@ -121,16 +121,16 @@ extension FailableStreamMainObserving {
     
     /// Observes the stream on the main-actor.
     /// - parameter receiveElement: A closure called when the stream receives elements.
-    /// - parameter receiveError: A closure called when the stream receives an error.
+    /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
     func observeOnMain(
         receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveError: (@MainActor (Failure) async -> Void)? = nil
+        receiveFailure: (@MainActor (Failure) async -> Void)? = nil
     ) -> Task<Void, Never> {
         observeOnMain(
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
     }
 }

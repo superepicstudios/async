@@ -50,7 +50,7 @@ Streams are unions between the standard library's [AsyncSequence](https://develo
 A stream that replays a buffered amount of elements to downstream consumers.
 
 ```swift
-let stream = ReplayStream<Int, Never>(2)
+let stream = ReplayStream<Int, Never>(buffering: 2)
 
 stream.send(1)
 stream.send(2)

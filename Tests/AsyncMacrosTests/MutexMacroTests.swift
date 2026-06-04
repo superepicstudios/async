@@ -22,8 +22,6 @@ final class MutexMacroTests {
     @Test
     func testInt() {
         
-        let s: AsyncCurrentValueSubject<Int> = .init(0)
-        
         #expect(self.int == 0)
         self.int += 1
         #expect(self.int == 1)

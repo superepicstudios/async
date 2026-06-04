@@ -19,30 +19,50 @@ import Foundation
 ///     }
 /// }
 /// ```
-public final class EmptyStream: StreamProtocol, StreamErasing, Sendable {
-
-    public typealias Element = Void
-    public typealias Output = Element
-    public typealias Base = AnyRelay<Void>
-    public typealias AsyncIterator = Base.AsyncIterator
-
-    private let base: Base
-
-    /// Initializes an empty stream.
+public final class EmptyStream: NonFailableStream {
+    
+    public typealias Element = ()
+    
+    public var publisher: any Publisher<(), Never> {
+        self.base.publisher
+    }
+    
+    private let base: AnyRelay<()>
+    
     public init() {
-        let stream = PassthroughStream<Void, Never>()
-        self.base = .init(stream.eraseToAnyRelay())
+        self.base = PassthroughStream<(), Never>().eraseToAnyRelay()
     }
-
-    // MARK: AsyncSequence
-
-    public func makeAsyncIterator() -> AsyncIterator {
-        self.base.makeAsyncIterator()
+    
+    public func makeAsyncSequence() -> any AsyncSendableSequence<(), Never> {
+        self.base.makeAsyncSequence()
     }
+}
 
-    // MARK: Publisher
+// MARK: Erasing
 
-    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        self.base.receive(subscriber: subscriber)
+extension EmptyStream: NonFailableStreamErasing {}
+
+// MARK: Sequencing
+
+extension EmptyStream: StreamSequencing, StreamMainSequencing {}
+
+// MARK: Observing
+
+extension EmptyStream: NonFailableStreamObserving, NonFailableStreamMainObserving {
+
+    @discardableResult
+    public func observe(
+        priority: TaskPriority,
+        receiveElement: @escaping @Sendable (()) async -> Void
+    ) -> Task<Void, Never> {
+        self.base.observe(
+            priority: priority,
+            receiveElement: receiveElement
+        )
+    }
+    
+    @discardableResult
+    public func observeOnMain(receiveElement: @escaping @MainActor (()) async -> Void) -> Task<Void, Never> {
+        self.base.observeOnMain(receiveElement: receiveElement)
     }
 }

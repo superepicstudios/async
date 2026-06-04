@@ -27,68 +27,70 @@ import Foundation
 /// // → "Received"
 /// // → "Finished"
 /// ```
-public final class SignalStream<Failure: Error>: StreamProtocol, StreamErasing {
+
+public final class SignalStream<Failure: Error>: FailableStream {
+        
+    public typealias Element = ()
     
-    public typealias Output = Void
-    public typealias Base = PassthroughStream<Void, Failure>
-    public typealias AsyncIterator = Base.AsyncIterator
-
-    private let base = Base()
-
-    /// Initializes a signal stream.
+    private let base = PassthroughStream<(), Failure>()
+    
+    public var publisher: any Publisher<(), Failure> {
+        self.base.publisher
+    }
+    
     public init() {}
     
-    // MARK: AsyncSequence
-
-    public func makeAsyncIterator() -> AsyncIterator {
-        self.base.makeAsyncIterator()
-    }
-
-    // MARK: Publisher
-
-    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
-        self.base.receive(subscriber: subscriber)
+    public func makeAsyncSequence() -> any AsyncSendableSequence<(), Failure> {
+        self.base.makeAsyncSequence()
     }
 }
 
 // MARK: Sending
 
-extension SignalStream: StreamElementSending, StreamCompletionSending {
+extension SignalStream: StreamElementSending, FailableStreamCompletionSending {
     
-    public func send(_ element: Element) {
-        self.base.send(element)
+    public func send(_ element: Void) {
+        self.base.send(())
     }
-
+    
     public func send(completion: Subscribers.Completion<Failure>) {
         self.base.send(completion: completion)
     }
 }
 
+// MARK: Erasing
+
+extension SignalStream: FailableStreamErasing {}
+
+// MARK: Sequencing
+
+extension SignalStream: StreamSequencing, StreamMainSequencing {}
+
 // MARK: Observing
 
 extension SignalStream: FailableStreamObserving, FailableStreamMainObserving {
-    
+
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Void) async -> Void,
-        receiveError: (@Sendable (Failure) async -> Void)?
-    ) -> Task<Void, Never> {
+        receiveElement: @escaping @Sendable (()) async -> Void,
+        receiveFailure: (@Sendable (Failure) async -> Void)?
+    ) -> Task<(), Never> {
         self.base.observe(
             priority: priority,
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
     }
     
     @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (Void) async -> Void,
-        receiveError: (@MainActor (Failure) async -> Void)?
+        receiveElement: @escaping @MainActor (()) async -> Void,
+        receiveFailure: (@MainActor (Failure) async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observeOnMain(
             receiveElement: receiveElement,
-            receiveError: receiveError
+            receiveFailure: receiveFailure
         )
     }
 }

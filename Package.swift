@@ -7,7 +7,7 @@ let package = Package(
     name: "Async",
     platforms: [
         .iOS(.v18),
-        .macOS(.v10_15)
+        .macOS(.v15)
     ],
     products: [
         .library(for: .async),
@@ -24,7 +24,7 @@ let package = Package(
     targets: [
         .async, .unitTests(for: .async),
         .asyncExperiments, .unitTests(for: .asyncExperiments),
-        .asyncMacros, .unitTests(for: .asyncMacros),
+        .asyncMacros, .unitTests(for: .asyncMacros, additionalDependencies: ["Async"]),
         .asyncTesting, .unitTests(for: .asyncTesting)
     ],
     swiftLanguageModes: [.v6]
