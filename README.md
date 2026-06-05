@@ -57,7 +57,9 @@ Streams are unions between the standard library's [AsyncSequence](https://develo
 
 Streams have several different flavors that both reflect and extend their Combine [subject](https://developer.apple.com/documentation/combine/subject) counterparts.
 
-#### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift): A stream that replays a buffered amount of elements to downstream consumers.
+#### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift)
+
+A stream that replays a buffered amount of elements to downstream consumers.
 
 ```swift
 let stream = ReplayStream<Int, Never>(buffering: 2)
@@ -82,7 +84,11 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-#### [ValueStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ValueStream.swift): A stream that buffers a single element, and sends it to downstream consumers.
+---
+
+#### [ValueStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ValueStream.swift)
+
+A stream that buffers a single element, and sends it to downstream consumers.
 
 ```swift
 let stream = ValueStream<Int, Never>(1)
@@ -103,6 +109,8 @@ stream.send(completion: .finished)
 // → "Received: 3"
 // → "Finished"
 ```
+
+---
 
 #### [PassthroughStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PassthroughStream.swift)
 
