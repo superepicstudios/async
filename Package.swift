@@ -22,7 +22,7 @@ let package = Package(
         .swiftSyntax
     ],
     targets: [
-        .async, .unitTests(for: .async),
+        .async, .unitTests(for: .async, additionalDependencies: ["AsyncTesting"]),
         .asyncExperiments, .unitTests(for: .asyncExperiments),
         .asyncMacros, .unitTests(for: .asyncMacros, additionalDependencies: ["Async"]),
         .asyncTesting, .unitTests(for: .asyncTesting)

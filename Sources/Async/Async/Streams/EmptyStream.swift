@@ -8,17 +8,22 @@
 
 import Foundation
 
-/// An empty observable stream that produces no elements.
+/// A stream that produces no elements or failures, and finishes immediately.
 ///
 /// ```swift
 /// let stream = EmptyStream()
 ///
-/// Task {
-///     for await _ in stream {
+/// stream.sequence { seq in
+///     for await _ in seq {
 ///         print("Received") // Never called
 ///     }
+///     print("Finished")
 /// }
+///
+/// // → "Finished"
 /// ```
+///
+/// - SeeAlso: ``JustStream``
 public final class EmptyStream: NonFailableStream {
     
     public typealias Element = ()
@@ -27,10 +32,11 @@ public final class EmptyStream: NonFailableStream {
         self.base.publisher
     }
     
-    private let base: AnyRelay<()>
-    
+    private let base: PassthroughStream<(), Never>
+
     public init() {
-        self.base = PassthroughStream<(), Never>().eraseToAnyRelay()
+        self.base = PassthroughStream<(), Never>()
+        self.base.send(completion: .finished)
     }
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<(), Never> {
@@ -46,9 +52,9 @@ extension EmptyStream: NonFailableStreamErasing {}
 
 extension EmptyStream: StreamSequencing, StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension EmptyStream: NonFailableStreamObserving, NonFailableStreamMainObserving {
+extension EmptyStream: NonFailableStreamElementObserving, NonFailableStreamElementMainObserving {
 
     @discardableResult
     public func observe(

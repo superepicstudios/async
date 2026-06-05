@@ -9,6 +9,8 @@
 @preconcurrency public import Combine
 import Foundation
 
+// MARK: StreamElementSending
+
 /// Protocol describing a stream that sends elements to downstream consumers.
 public protocol StreamElementSending<Element>: Sendable {
     
@@ -16,15 +18,19 @@ public protocol StreamElementSending<Element>: Sendable {
     associatedtype Element: Sendable
     
     /// Sends an element to downstream consumers.
-    /// - parameter element: An element.
+    /// - parameter element: An element to send.
     func send(_ element: Element)
 }
 
-extension StreamElementSending where Element == Void {
-    
+extension StreamElementSending where Element == () {
+
     /// Sends a signal to downstream consumers.
-    func send() { send(()) }
+    func send() {
+        send(())
+    }
 }
+
+// MARK: FailableStreamCompletionSending
 
 /// Protocol describing a failable stream that sends completions to downstream consumers.
 public protocol FailableStreamCompletionSending<Failure>: Sendable {
@@ -33,18 +39,20 @@ public protocol FailableStreamCompletionSending<Failure>: Sendable {
     associatedtype Failure: Error
     
     /// Sends a completion to downstream consumers.
-    /// - parameter completion: A completion.
+    /// - parameter completion: A completion to send.
     ///
-    /// - Note: This induces a terminal state from which no further elements can be sent.
+    /// - Note: This induces a terminal state from which no further elements or completions can be sent.
     func send(completion: Subscribers.Completion<Failure>)
 }
+
+// MARK: NonFailableStreamCompletionSending
 
 /// Protocol describing a non-failable stream that sends completions to downstream consumers.
 public protocol NonFailableStreamCompletionSending: Sendable {
     
     /// Sends a completion to downstream consumers.
-    /// - parameter completion: A completion.
+    /// - parameter completion: A completion to send.
     ///
-    /// - Note: This induces a terminal state from which no further elements can be sent.
+    /// - Note: This induces a terminal state from which no further elements or completions can be sent.
     func send(completion: Subscribers.Completion<Never>)
 }

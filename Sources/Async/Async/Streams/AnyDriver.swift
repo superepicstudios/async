@@ -9,45 +9,30 @@
 @preconcurrency public import Combine
 import Foundation
 
-/// A type-erased observable stream of elements that never produces failures, and guarantees delivery on the main-actor.
+/// A type-erased stream of elements that never produces failures, and guarantees delivery on the main-actor.
 ///
 /// ```swift
-/// @MainActor
-/// final class Model {
+/// let driver = Driver<Int>(1)
+/// let erased: AnyDriver<Int> = driver.eraseToAnyDriver()
 ///
-///     private let _count = Driver<Int>(0)
-///     var count: AnyDriver<Int> {
-///         self._count.eraseToAnyDriver()
+/// erased.sequenceOnMain { seq in
+///     for await e in seq {
+///         print("Received: \(e)")
 ///     }
-///
-///     func increment() {
-///         let newCount = self._count.latest + 1
-///         self._count.send(newCount)
-///     }
+///     print("Finished")
 /// }
 ///
-/// @MainActor
-/// final class Counter {
+/// driver.send(2)
+/// driver.send(3)
+/// driver.send(completion: .finished)
 ///
-///     private let model = Model()
-///
-///     init() {
-///
-///         self.model.count.observeOnMain { c in
-///             print("Count: \(c)")
-///         }
-///
-///         Task {
-///             while !Task.isCancelled {
-///                 try await Task.sleep(for: .seconds(1))
-///                 self.model.increment()
-///             }
-///         }
-///     }
-/// }
+/// // → "Received: 1"
+/// // → "Received: 2"
+/// // → "Received: 3"
+/// // → "Finished"
 /// ```
 ///
-/// - SeeAlso: ``Driver``
+/// - SeeAlso: ``Driver``, ``AnyStream``, ``AnyRelay``
 public struct AnyDriver<Element: Sendable>: NonFailableStream {
     
     public var publisher: any Publisher<Element, Never> {
@@ -69,21 +54,16 @@ public struct AnyDriver<Element: Sendable>: NonFailableStream {
 
 extension AnyDriver: StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension AnyDriver: NonFailableStreamMainObserving {
-    
-    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
-        self.wrapped.observeOnMain(receiveElement: receiveElement)
-    }
-}
+extension AnyDriver: StreamElementMainProviding, NonFailableStreamElementMainObserving {
 
-// MARK: Element Providing
-
-extension AnyDriver: StreamElementProviding {
-    
-    // @MainActor
+    @MainActor
     public var latest: Element {
         self.wrapped.latest
+    }
+
+    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
+        self.wrapped.observeOnMain(receiveElement: receiveElement)
     }
 }

@@ -1,5 +1,5 @@
 //
-//  FailableWrappedPublisher.swift
+//  FailureWrappedPublisher.swift
 //  Async
 //
 //  Created by Mitch Treece on 6/1/26.
@@ -10,8 +10,8 @@
 import Foundation
 
 /// A publisher that wraps another non-failable publisher, and makes it look failable.
-public struct FailableWrappedPublisher<Output, Failure: Error>: Publisher {
-    
+public struct FailureWrappedPublisher<Output, Failure: Error>: Publisher {
+
     final class WrappedSubscriber<DownstreamFailure: Error>: Subscriber {
         
         typealias Input = Output

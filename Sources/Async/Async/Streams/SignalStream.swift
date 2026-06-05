@@ -9,13 +9,13 @@
 @preconcurrency public import Combine
 import Foundation
 
-/// An observable stream that broadcasts signals to downstream consumers.
+/// A stream that sends signals to downstream consumers.
 ///
 /// ```swift
 /// let stream = SignalStream<Never>()
 ///
-/// Task {
-///     for try await _ in stream {
+/// stream.sequence { seq in
+///     for try await _ in seq {
 ///         print("Received")
 ///     }
 ///     print("Finished")
@@ -27,7 +27,8 @@ import Foundation
 /// // → "Received"
 /// // → "Finished"
 /// ```
-
+///
+/// - SeeAlso: ``PassthroughStream``, ``SignalSubject``
 public final class SignalStream<Failure: Error>: FailableStream {
         
     public typealias Element = ()
@@ -66,9 +67,9 @@ extension SignalStream: FailableStreamErasing {}
 
 extension SignalStream: StreamSequencing, StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension SignalStream: FailableStreamObserving, FailableStreamMainObserving {
+extension SignalStream: FailableStreamElementObserving, FailableStreamElementMainObserving {
 
     @discardableResult
     public func observe(

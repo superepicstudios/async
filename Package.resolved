@@ -1,5 +1,5 @@
 {
-  "originHash" : "b5735bb1916b5ecd4ae755a6339154e52613b761bd9462a4a04de12c7d246ed7",
+  "originHash" : "5cc85c947f806012d66f4540c8427027de7e7babb5082d10978c85c1928f851b",
   "pins" : [
     {
       "identity" : "combineext",
@@ -16,7 +16,7 @@
       "location" : "https://github.com/superepicstudios/espresso",
       "state" : {
         "branch" : "dev",
-        "revision" : "a019da5f39dc2eaf55e86a18a5d03df42b87cb62"
+        "revision" : "cdcc2be1bbf616025b93b3c133fb9fd242f2c440"
       }
     },
     {

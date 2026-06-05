@@ -9,6 +9,7 @@
 @preconcurrency public import Combine
 import Foundation
 
+/// A publisher that wraps another publisher, and delivers elements & completions on the main-queue.
 public struct MainQueuePublisher<Output: Sendable, Failure: Error & Sendable>: Publisher {
     
     private let wrapped: any Publisher<Output, Failure>

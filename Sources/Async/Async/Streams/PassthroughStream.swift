@@ -9,30 +9,32 @@
 @preconcurrency public import Combine
 import Foundation
 
-/// An observable stream that doesn't buffer elements, and broadcasts new ones to downstream consumers.
+/// A stream that doesn't buffer any elements, and sends new ones to downstream consumers.
 ///
 /// ```swift
 /// let stream = PassthroughStream<Int, Never>()
 ///
-/// stream.send(1) // Dropped (no consumers)
+/// stream.send(0) // Dropped (no consumers)
 ///
-/// Task {
-///     for try await e in stream {
-///         print("Received: \(e))
+/// stream.sequence { seq in
+///     for try await e in seq {
+///         print("Received: \(e)")
 ///     }
 ///     print("Finished")
 /// }
 ///
+/// stream.send(1)
 /// stream.send(2)
 /// stream.send(3)
 /// stream.send(completion: .finished)
 ///
+/// // → "Received: 1"
 /// // → "Received: 2"
 /// // → "Received: 3"
 /// // → "Finished"
 /// ```
 ///
-/// - SeeAlso: ``PassthroughSubject``
+/// - SeeAlso: ``ReplayStream``, ``PassthroughSubject``
 public final class PassthroughStream<Element: Sendable, Failure: Error>: FailableStream {
         
     private let base = ReplayStream<Element, Failure>(buffering: 0)
@@ -69,10 +71,10 @@ extension PassthroughStream: FailableStreamErasing {}
 
 extension PassthroughStream: StreamSequencing, StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension PassthroughStream: FailableStreamObserving, FailableStreamMainObserving {
-    
+extension PassthroughStream: FailableStreamElementObserving, FailableStreamElementMainObserving {
+
     @discardableResult
     public func observe(
         priority: TaskPriority,

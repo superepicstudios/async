@@ -9,13 +9,13 @@
 @preconcurrency public import Combine
 import Foundation
 
-/// An observable stream that buffers a single element, and broadcasts it to downstream consumers.
+/// A stream that buffers a single element, and sends it to downstream consumers.
 ///
 /// ```swift
 /// let stream = ValueStream<Int, Never>(1)
 ///
-/// Task {
-///     for try await e in stream {
+/// stream.sequence { seq in
+///     for try await e in seq {
 ///         print("Received: \(e)")
 ///     }
 ///     print("Finished")
@@ -31,8 +31,7 @@ import Foundation
 /// // → "Finished"
 /// ```
 ///
-/// - SeeAlso: ``CurrentValueSubject``
-
+/// - SeeAlso: ``ReplayStream``, ``CurrentValueSubject``
 public final class ValueStream<Element: Sendable, Failure: Error>: FailableStream {
     
     public var publisher: any Publisher<Element, Failure> {
@@ -53,7 +52,7 @@ public final class ValueStream<Element: Sendable, Failure: Error>: FailableStrea
 // MARK: Sending
 
 extension ValueStream: StreamElementSending, FailableStreamCompletionSending {
-    
+
     public func send(_ element: Element) {
         self.base.send(element)
     }
@@ -71,10 +70,14 @@ extension ValueStream: FailableStreamErasing {}
 
 extension ValueStream: StreamSequencing, StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension ValueStream: FailableStreamObserving, FailableStreamMainObserving {
-    
+extension ValueStream: StreamElementProviding, FailableStreamElementObserving, FailableStreamElementMainObserving {
+
+    public var latest: Element {
+        self.base.latest
+    }
+
     @discardableResult
     public func observe(
         priority: TaskPriority,
@@ -97,14 +100,5 @@ extension ValueStream: FailableStreamObserving, FailableStreamMainObserving {
             receiveElement: receiveElement,
             receiveFailure: receiveFailure
         )
-    }
-}
-
-// MARK: Element Providing
-
-extension ValueStream: StreamElementProviding {
-    
-    public var latest: Element {
-        self.base.latest
     }
 }

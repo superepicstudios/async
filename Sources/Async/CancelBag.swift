@@ -8,7 +8,7 @@
 
 @preconcurrency import Combine
 
-/// Cancellable storage that cancels added elements when removed or destroyed.
+/// Thread safe cancellable storage that cancels elements when removed or destroyed.
 ///
 /// - SeeAlso: ``CancellableSet``, ``AsyncCancellableSet``
 public final class CancelBag: Cancellable, Sendable {

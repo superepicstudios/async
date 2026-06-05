@@ -1,5 +1,5 @@
 //
-//  StreamObserving.swift
+//  StreamElementObserving.swift
 //  Async
 //
 //  Created by Mitch Treece on 6/1/26.
@@ -8,41 +8,20 @@
 
 import Foundation
 
-/// Protocol describing a failable stream that can be observed.
-///
-/// ```swift
-/// enum ExampleError: Error {
-///     case bad
-/// }
-///
-/// let stream = ValueStream<Int, ExampleError>(1)
-///
-/// stream.observe { element in
-///     print("Observed: \(element)"
-/// } receiveFailure: { error in
-///     print("Error: \(error)")
-/// }
-///
-/// stream.send(2)
-/// stream.send(3)
-/// stream.send(completion: .failure(.bad))
-///
-/// // → "Observed: 1"
-/// // → "Observed: 2"
-/// // → "Observed: 3"
-/// // → "Error: bad"
-/// ```
-public protocol FailableStreamObserving<Element, Failure> {
-    
+// MARK: FailableStreamElementObserving
+
+/// Protocol describing a failable stream that can observe its elements.
+public protocol FailableStreamElementObserving<Element, Failure> {
+
     /// The stream's element type.
     associatedtype Element: Sendable
     
     /// The stream's failure type.
     associatedtype Failure: Error
     
-    /// Observes the stream.
+    /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
@@ -53,11 +32,11 @@ public protocol FailableStreamObserving<Element, Failure> {
     ) -> Task<Void, Never>
 }
 
-extension FailableStreamObserving {
-    
-    /// Observes the stream.
+extension FailableStreamElementObserving {
+
+    /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
@@ -74,40 +53,19 @@ extension FailableStreamObserving {
     }
 }
 
-/// Protocol describing a failable stream that can be observed on the main-actor.
-///
-/// ```swift
-/// enum ExampleError: Error {
-///     case bad
-/// }
-///
-/// let stream = ValueStream<Int, ExampleError>(1)
-///
-/// stream.observeOnMain { element in
-///     print("Observed: \(element)"
-/// } receiveFailure: { error in
-///     print("Error: \(error)")
-/// }
-///
-/// stream.send(1)
-/// stream.send(2)
-/// stream.send(completion: .failure(.bad))
-///
-/// // → "Observed: 1"
-/// // → "Observed: 2"
-/// // → "Observed: 3"
-/// // → "Error: bad"
-/// ```
-public protocol FailableStreamMainObserving<Element, Failure> {
-    
+// MARK: FailableStreamElementMainObserving
+
+/// Protocol describing a failable stream that can observe its elements on the main-actor.
+public protocol FailableStreamElementMainObserving<Element, Failure> {
+
     /// The stream's element type.
     associatedtype Element: Sendable
     
     /// The stream's failure type.
     associatedtype Failure: Error
     
-    /// Observes the stream on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// Observes the stream's elements on the main-actor.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
@@ -117,10 +75,10 @@ public protocol FailableStreamMainObserving<Element, Failure> {
     ) -> Task<Void, Never>
 }
 
-extension FailableStreamMainObserving {
-    
-    /// Observes the stream on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+extension FailableStreamElementMainObserving {
+
+    /// Observes the stream's elements on the main-actor.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - parameter receiveFailure: A closure called when the stream receives a failure.
     /// - returns: An observation task.
     @discardableResult
@@ -135,30 +93,17 @@ extension FailableStreamMainObserving {
     }
 }
 
-/// Protocol describing a non-failable stream that can be observed.
-///
-/// ```swift
-/// let stream = ValueStream<Int, Never>(1)
-///
-/// stream.observe { element in
-///     print("Observed: \(element)")
-/// }
-///
-/// stream.send(2)
-/// stream.send(3)
-///
-/// // → "Observed: 1"
-/// // → "Observed: 2"
-/// // → "Observed: 3"
-/// ```
-public protocol NonFailableStreamObserving<Element> {
-    
+// MARK: NonFailableStreamElementObserving
+
+/// Protocol describing a non-failable stream that can observe its elements.
+public protocol NonFailableStreamElementObserving<Element> {
+
     /// The stream's element type.
     associatedtype Element: Sendable
     
-    /// Observes the stream.
+    /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - returns: An observation task.
     @discardableResult
     func observe(
@@ -167,11 +112,11 @@ public protocol NonFailableStreamObserving<Element> {
     ) -> Task<Void, Never>
 }
 
-extension NonFailableStreamObserving {
-    
-    /// Observes the stream.
+extension NonFailableStreamElementObserving {
+
+    /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - returns: An observation task.
     @discardableResult
     func observe(
@@ -185,29 +130,16 @@ extension NonFailableStreamObserving {
     }
 }
 
-/// Protocol describing a non-failable stream that can be observed on the main-actor.
-///
-/// ```swift
-/// let stream = Driver<Int>(1)
-///
-/// stream.observeOnMain { element in
-///     print("Observed: \(element)")
-/// }
-///
-/// stream.send(2)
-/// stream.send(3)
-///
-/// // → "Observed: 1"
-/// // → "Observed: 2"
-/// // → "Observed: 3"
-/// ```
-public protocol NonFailableStreamMainObserving<Element> {
-    
+// MARK: NonFailableStreamElementMainObserving
+
+/// Protocol describing a non-failable stream that can observe its elements on the main-actor.
+public protocol NonFailableStreamElementMainObserving<Element> {
+
     /// The stream's element type.
     associatedtype Element: Sendable
     
-    /// Observes the stream on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives elements.
+    /// Observes the stream's elements on the main-actor.
+    /// - parameter receiveElement: A closure called when the stream receives an element.
     /// - returns: An observation task.
     @discardableResult
     func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never>

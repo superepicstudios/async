@@ -8,7 +8,7 @@
 
 import Foundation
 
-
+/// An async sequence that wraps another sequence, and delivers elements & completions on the main-actor.
 public struct AsyncMainActorSequence<Element: Sendable, Failure: Error & Sendable>: AsyncSequence, @unchecked Sendable {
 
     public typealias AsyncIterator = AsyncIteratorImpl
@@ -16,9 +16,7 @@ public struct AsyncMainActorSequence<Element: Sendable, Failure: Error & Sendabl
     private let stream: AsyncThrowingStream<Element, any Error>
 
     public init(_ wrapped: any AsyncSendableSequence<Element, Failure>) {
-        
         self.stream = AsyncThrowingStream<Element, any Error> { continuation in
-            
             let task = Task {
                 do {
                     var iterator = wrapped.makeAsyncIterator()
@@ -28,7 +26,7 @@ public struct AsyncMainActorSequence<Element: Sendable, Failure: Error & Sendabl
                             continuation.yield(element)
                         }
                     }
-                    
+
                     await MainActor.run {
                         continuation.finish()
                     }

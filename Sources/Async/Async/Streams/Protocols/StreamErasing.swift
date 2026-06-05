@@ -8,13 +8,9 @@
 
 import Foundation
 
-/// Protocol describing a failable stream that can be type-erased into a generic read-only wrapper.
-///
-/// ```swift
-/// let base = ValueStream<Int, Never>(0)
-/// let stream: AnyStream<Int, Never> = base.eraseToAnyStream()
-/// let relay: AnyRelay<Int> = base.eraseToAnyRelay()
-/// ```
+// MARK: FailableStreamErasing
+
+/// Protocol describing a failable stream that can perform type-erasure.
 public protocol FailableStreamErasing<Element, Failure>: Sendable {
     
     /// The stream's element type.
@@ -26,24 +22,22 @@ public protocol FailableStreamErasing<Element, Failure>: Sendable {
 
 extension FailableStreamErasing where Self: FailableStream<Element, Failure> {
     
-    /// Erases the stream into a read-only wrapper.
+    /// Erases the stream into a read-only stream.
     /// - returns: A type-erased stream.
     public func eraseToAnyStream() -> AnyStream<Element, Failure> {
-        AnyStream(failable: self)
+        AnyStream(self)
     }
 
     /// Erases the stream into a read-only relay.
     /// - returns: A type-erased relay.
     public func eraseToAnyRelay() -> AnyRelay<Element> {
-        AnyRelay(failable: self)
+        AnyRelay(self)
     }
 }
 
-// Do I even need "NonFailableStreamErasing" ?
-// Wouldn't this *only* apply to `Driver` ?
-// And because drivers can only be erased to AnyDriver
-// (which it defines itself) I think this will be unused
+// MARK: NonFailableStreamErasing
 
+/// Protocol describing a non-failable stream that can perform type-erasure.
 public protocol NonFailableStreamErasing<Element>: Sendable {
     
     /// The stream's element type.
@@ -52,15 +46,15 @@ public protocol NonFailableStreamErasing<Element>: Sendable {
 
 extension NonFailableStreamErasing where Self: NonFailableStream<Element> {
     
-    /// Erases the stream into a read-only wrapper.
+    /// Erases the stream into a read-only stream.
     /// - returns: A type-erased stream.
     public func eraseToAnyStream() -> AnyStream<Element, Never> {
-        AnyStream(nonFailable: self)
+        AnyStream(self)
     }
 
     /// Erases the stream into a read-only relay.
     /// - returns: A type-erased relay.
     public func eraseToAnyRelay() -> AnyRelay<Element> {
-        AnyRelay(nonFailable: self)
+        AnyRelay(self)
     }
 }

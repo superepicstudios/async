@@ -9,6 +9,7 @@
 @preconcurrency import Combine
 import Foundation
 
+/// An async sequence that wraps a publisher, and enforces failure semantics.
 public struct AsyncPublisherSequence<Element: Sendable, Failure: Error>: AsyncSequence, Sendable {
     
     public typealias AsyncIterator = AsyncIteratorImpl

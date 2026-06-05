@@ -22,13 +22,12 @@ Async data-over-time, flow, & extension library that builds on the amazing work 
 
 ### SPM
 
-The easiest way to get started, is installing via Xcode. All you have to do is add a package dependency with the following url: `https://github.com/superepicstudios/Async`
-Developing your own package and want to depend on Async? Just add a package entry to your `Package.swift`:
+The easiest way to get started, is installing via Xcode. All you have to do is add a package dependency with the following url: `https://github.com/superepicstudios/Async`. Developing your own package and want to depend on Async? Just add a package entry to your `Package.swift`:
 
 ```swift
 .package(
     url: "https://github.com/superepicstudios/Async",
-    from: "0.0.1"
+    from: "0.1.0"
 )
 ```
 
@@ -43,7 +42,7 @@ This package is split into three distinct modules:
 
 ## 🌊 Streams
 
-Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and Combine's [Publisher](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, help bridge the gap between [Combine](https://developer.apple.com/documentation/combine) and modern async api's, and above all else - make working with async data fun again 🎉. In addition to `AsyncSequence` and `Publisher` conformance, they also come with a wide range of built-in helpers, shortcuts, and syntax sugar. Streams have several different flavors that both reflect and extend their Combine [subject](https://developer.apple.com/documentation/combine/subject) counterparts.
+Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and Combine's [Publisher](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, help bridge the gap between [Combine](https://developer.apple.com/documentation/combine) and modern async api's, and above all else - make working with async data fun again 🎉. In addition to wrapping `AsyncSequence` and `Publisher`, they also come with a wide range of built-in helpers, shortcuts, and syntax sugar. Streams have several different flavors that both reflect and extend their Combine [subject](https://developer.apple.com/documentation/combine/subject) counterparts.
 
 ### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift)
 
@@ -52,18 +51,21 @@ A stream that replays a buffered amount of elements to downstream consumers.
 ```swift
 let stream = ReplayStream<Int, Never>(buffering: 2)
 
+stream.send(0) // dropped (outside buffer)
 stream.send(1)
 stream.send(2)
-stream.send(3)
-stream.send(completion: .finished)
 
-Task { 
-    for try await e in stream {
+stream.sequence { seq in
+    for try await e in seq {
         print("Received: \(e)")
     }
     print("Finished")
 }
 
+stream.send(3)
+stream.send(completion: .finished)
+
+// → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
 // → "Finished"
@@ -76,8 +78,8 @@ A stream that buffers a single element, and sends it to downstream consumers.
 ```swift
 let stream = ValueStream<Int, Never>(1)
 
-Task {
-    for try await e in stream {
+stream.sequence { seq in
+    for try await e in seq {
         print("Received: \(e)")
     }
     print("Finished")
@@ -95,24 +97,26 @@ stream.send(completion: .finished)
 
 ### [PassthroughStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PassthroughStream.swift)
 
-A stream that doesn't buffer its elements, and only sends new ones to downstream consumers.
+A stream that doesn't buffer any elements, and sends new ones to downstream consumers.
 
 ```swift
 let stream = PassthroughStream<Int, Never>()
 
-stream.send(1) // Dropped (no consumers)
+stream.send(0) // dropped (no consumers)
 
-Task {
-    for try await e in stream {
+stream.sequence { seq in
+    for try await e in seq {
         print("Received: \(e)")
     }
     print("Finished")
 }
 
+stream.send(1)
 stream.send(2)
 stream.send(3)
 stream.send(completion: .finished)
 
+// → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
 // → "Finished"
@@ -125,8 +129,8 @@ A stream that sends signals to downstream consumers.
 ```swift
 let stream = SignalStream<Never>()
 
-Task {
-    for try await _ in stream {
+stream.sequence { seq in
+    for try await _ in seq {
         print("Received")
     }
     print("Finished")
@@ -141,37 +145,42 @@ stream.send(completion: .finished)
 
 ### [JustStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/JustStream.swift)
 
-A stream that buffers a single constant element, and sends it to downstream consumers.
+A stream that buffers a single constant element, sends it to downstream consumers, never produces failures, and finishes immediately.
 
 ```swift
-let stream = JustStream<Int>(0)
+let stream = JustStream<Int>(1)
 
-Task {
-    for await e in stream {
+stream.sequence { seq in
+    for await e in seq {
         print("Received: \(e)")
     }
+    print("Finished")
 }
 
-// → "Received: 0"
+// → "Received: 1"
+// → "Finished"
 ```
 
 ### [EmptyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/EmptyStream.swift)
 
-A stream that buffers and sends no elements.
+A stream that produces no elements or failures, and finishes immediately.
 
 ```swift
 let stream = EmptyStream()
 
-Task {
-    for await _ in stream {
-        print("Received") // Never called
+stream.sequence { seq in
+    for await e in seq {
+        print("Received") // never called
     }
+    print("Finished")
 }
+
+// → "Finished"
 ```
 
 ## 📡 Relays & Drivers
 
-Streams are already easy to work with, but we don't always need the failure semantics some of them carry. When working in no-failure situations, we can leverage the specialized non-failable `Relay` and `Driver` streams.
+Streams are already easy to work with, but we don't always need the failure semantics most of them carry. When working in no-failure situations, we can leverage the specialized non-failable `Relay` and `Driver` streams.
 
 ### Relays
 
@@ -184,25 +193,31 @@ Drivers are specialized streams that buffer a single element, send it to downstr
 ```swift
 let driver = Driver<Int>(1)
 
-driver.observeOnMain { e in
-    print("Received: \(e)")
+driver.sequenceOnMain { seq in
+    for await e in seq {
+        print("Received: \(e)")
+    }
+    print("Finished")
 }
 
 driver.send(2)
 driver.send(3)
+driver.send(completion: .finished)
 
 // → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
+// → "Finished"
 ```
 
 > [!IMPORTANT]
-> While drivers guarantee element _delivery_ on the main-actor, that same isolation cannot be enforced for `AsyncSequence` observation.
-> It's recommended to `observeOnMain(receiveElement:)` or `sink(receiveValue:)` as these guarantee main-actor isolation for delivery _and_ observation.
+> While drivers guarantee element _delivery_ on the main-actor, that same isolation cannot be enforced for direct `AsyncSequence` _observation_.
+> It's recommended to use `sequenceOnMain(body:)` or `observeOnMain(receiveElement:)` as these enforce main-actor isolation for delivery _and_
+> observation.
 
 ## 😶‍🌫️ Erasure
 
-Similar to a Combine publisher's [eraseToAnyPublisher()](https://developer.apple.com/documentation/combine/publisher/erasetoanypublisher()), all streams support some form of type-erasure. Depending on the source stream, you can erase streams using the following functions:
+Similar to a Combine publisher's [eraseToAnyPublisher()](https://developer.apple.com/documentation/combine/publisher/erasetoanypublisher()), all streams support some form of type-erasure. Depending on the source stream, you can perform erasure using the following functions:
 
 - `eraseToAnyStream()`
 - `eraseToAnyRelay()`
@@ -216,18 +231,21 @@ A type-erased stream of elements.
 let stream: ValueStream<Int, Never>(1)
 let erased: AnyStream<Int, Never> = stream.eraseToAnyStream()
 
-Task {
-    for try await e in erased {
+erased.sequence { seq in
+    for try await e in seq {
         print("Received: \(e)")
     }
+    print("Finished")
 }
 
 stream.send(2)
 stream.send(3)
+stream.send(completion: .finished)
 
 // → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
+// → "Finished"
 ```
 
 ### [AnyRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyRelay.swift)
@@ -238,10 +256,11 @@ A type-erased stream of elements that never produces failures.
 let stream = ValueStream<Int, Never>(1)
 let erased: AnyRelay<Int> = stream.eraseToAnyRelay()
 
-Task {
-    for await e in erased {
+erased.sequence { seq in
+    for await e in seq {
         print("Received: \(e)")
     }
+    print("Finished")
 }
 
 stream.send(2)
@@ -250,6 +269,7 @@ stream.send(3)
 // → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
+// → "Finished"
 ```
 
 ### [AnyDriver](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyDriver.swift)
@@ -260,8 +280,11 @@ A type-erased stream of elements that never produces failures, and guarantees de
 let driver = Driver<Int>(1)
 let erased: AnyDriver<Int> = driver.eraseToAnyDriver()
 
-erased.observeOnMain { e in
-    print("Received: \(e)")
+erased.sequenceOnMain { seq in
+    for await e in seq {
+        print("Received: \(e)")
+    }
+    print("Finished")
 }
 
 driver.send(2)
@@ -270,6 +293,7 @@ driver.send(3)
 // → "Received: 1"
 // → "Received: 2"
 // → "Received: 3"
+// → "Finished"
 ```
 
 ## 📦 Property Wrappers
@@ -300,7 +324,7 @@ Pretty straight-forward, but we can do better:
 ```swift
 final class Model: ModelProtocol {
     
-    @Stream<Int>(0) var count
+    @Stream<Int, Never>(0) var count
     // count: AnyStream<Int, Never>
     // $count: ValueStream<Int, Never>
 
@@ -312,9 +336,9 @@ final class Model: ModelProtocol {
 ```
 
 > [!CAUTION]
-> Property wrappers don't play nice with Swift 6 sendability requirements. The backing storage is always generated as a mutable `var`, regardless if it's actually mutable or not.
-> Until Swift adds support for immutable backing storage for property wrappers, it's recommended to use streams directly. Alternatively, you can add `@unchecked Sendable` conformance
-> to your enclosing type _if_ you're certain about its thread-safety semantics.
+> Property wrappers don't play nice with Swift 6 sendability requirements. The backing storage is always generated as a mutable `var`, regardless
+> if it's actually mutable or not. Until Swift adds support for immutable backing storage for property wrappers, it's recommended to use streams
+> directly. Alternatively, you can add `@unchecked Sendable` conformance to your enclosing type _if_ you're certain about its thread-safety semantics.
 
 ### [@Streamed](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Streamed.swift)
 
@@ -323,8 +347,8 @@ Wraps an element, and exposes an erased read-only ``AnyStream``.
 ```swift
 @Streamed var value: Int = 1
 
-Task {
-    for await e in $value {
+$value.sequence { seq in
+    for try await e in seq {
         print("Element: \(e)")
     }
 }
@@ -342,20 +366,23 @@ value = 3
 Wraps a `ValueStream`, and exposes an erased read-only `AnyStream`.
 
 ```swift
-@Stream<Int>(1) var stream
+@Stream<Int, Never>(1) var stream
 
-Task {
-    for try await e in stream {
+stream.sequence { seq in
+    for try await e in seq {
         print("Element: \(e)")
     }
+    print("Finished")
 }
     
 $stream.send(2)
 $stream.send(3)
+$stream.send(completion: .finished)
 
 // → "Element: 1"
 // → "Element: 2"
 // → "Element: 3"
+// → "Finished"
 ```
 
 ### [@Relay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Relay.swift)
@@ -365,18 +392,21 @@ Wraps a `ValueStream`, and exposes an erased read-only `AnyRelay`.
 ```swift
 @Relay<Int>(1) var relay
 
-Task {
-    for await e in relay {
+relay.sequence { seq in
+    for await e in seq {
         print("Element: \(e)")
     }
+    print("Finished")
 }
 
 $relay.send(2)
 $relay.send(3)
+$relay.send(completion: .finished)
 
 // → "Element: 1"
 // → "Element: 2"
 // → "Element: 3"
+// → "Finished"
 ```
 
 ### [@Drive](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Drive.swift)
@@ -386,16 +416,21 @@ Wraps a `Driver`, and exposes an erased read-only `AnyDriver`.
 ```swift
 @Drive<Int>(1) var driver
 
-driver.observeOnMain { e in
-    print("Element: \(e)")
+driver.sequenceOnMain { seq in
+    for await e in seq {
+        print("Element: \(e)")
+    }
+    print("Finished")
 }
 
 $driver.send(2)
 $driver.send(3)
+$driver.send(completion: .finished)
 
 // → "Element: 1"
 // → "Element: 2"
 // → "Element: 3"
+// → "Finished"
 ```
 
 ### [@Passthrough](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Passthrough.swift)
@@ -403,20 +438,26 @@ $driver.send(3)
 Wraps a `PassthroughStream`, and exposes an erased read-only `AnyStream`.
 
 ```swift
-@Passthrough<Int> var stream
-$stream.send(1) // Dropped (no consumers)
+@Passthrough<Int, Never> var stream
 
-Task {
-    for try await e in stream {
+$stream.send(0) // dropped (no consumers)
+
+stream.sequence { seq in
+    for try await e in seq {
         print("Element: \(e)")
     }
+    print("Finished")
 }
 
+$stream.send(1)
 $stream.send(2)
 $stream.send(3)
+$stream.send(completion: .finished)
 
+// → "Element: 1"
 // → "Element: 2"
 // → "Element: 3"
+// → "Finished"
 ```
 
 ### [@PassthroughRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@PassthroughRelay.swift)
@@ -425,19 +466,25 @@ Wraps a `PassthroughStream`, and exposes an erased read-only `AnyRelay`.
 
 ```swift
 @PassthroughRelay<Int> var relay
-$relay.send(1) // Dropped (no consumers)
 
-Task {
-    for await e in relay {
+$relay.send(0) // dropped (no consumers)
+
+relay.sequence { seq in
+    for await e in seq {
         print("Element: \(e)")
     }
+    print("Finished")
 }
 
+$relay.send(1)
 $relay.send(2)
 $relay.send(3)
+$stream.send(completion: .finished)
 
+// → "Element: 1"
 // → "Element: 2"
 // → "Element: 3"
+// → "Finished"
 ```
 
 ### [@Signal](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Signal.swift)
@@ -445,17 +492,20 @@ $relay.send(3)
 Wraps a `SignalStream`, and exposes an erased read-only `AnyStream`.
 
 ```swift
-@Signal var stream
+@Signal<Never> var stream
 
-Task {
-    for try await _ in stream {
-        print("Signal")
+stream.sequence { seq in
+    for try await _ in seq {
+        print("Received")
     }
+    print("Finished")
 }
 
 $stream.send()
+$stream.send(completion: .finished)
 
-// → "Signal"
+// → "Received"
+// → "Finished"
 ```
 
 ### [@SignalRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@SignalRelay.swift)
@@ -465,15 +515,18 @@ Wraps a `SignalStream`, and exposes an erased read-only `AnyRelay`.
 ```swift
 @SignalRelay var relay
 
-Task {
-    for await _ in relay {
-        print("Signal")
+relay.sequence { seq in
+    for await _ in seq {
+        print("Received")
     }
+    print("Finished")
 }
 
 $relay.send()
+$relay.send(completion: .finished)
 
-// → "Signal"
+// → "Received"
+// → "Finished"
 ```
 
 ### [@Pipe](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Pipe.swift)
@@ -482,11 +535,23 @@ Wraps an element, connects to an external stream, and re-streams its elements.
 
 ```swift
 let stream = ValueStream<Int, Never>(1)
-@Pipe var pipe: Int = 0
 
-$pipe.connect(to: stream) // pipe == 1
-stream.send(2) // pipe == 2
-stream.send(3) // pipe == 3
+@Pipe var pipe: Int = 0
+print("Pipe: \(pipe)")
+
+$pipe.connect(to: stream)
+print("Pipe: \(pipe)")
+
+stream.send(2)
+print("Pipe: \(pipe)")
+
+stream.send(3)
+print("Pipe: \(pipe)")
+
+// → "Pipe: 0"
+// → "Pipe: 1"
+// → "Pipe: 2"
+// → "Pipe: 3"
 ```
 
 ## 🤝🏻 TaskActor
@@ -534,7 +599,7 @@ subject.send()
 
 ### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeCurrentValueSubject.swift)
 
-[CurrentValueSubject](https://developer.apple.com/documentation/combine/currentvaluesubject) that can never fail.
+A specialized [CurrentValueSubject](https://developer.apple.com/documentation/combine/currentvaluesubject) that can never fail.
 
 ```swift
 let subject = GuaranteeCurrentValueSubject<Int>(0)
@@ -542,7 +607,7 @@ let subject = GuaranteeCurrentValueSubject<Int>(0)
 
 ### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteePassthroughSubject.swift)
 
-[PassthroughSubject](https://developer.apple.com/documentation/combine/passthroughsubject) that can never fail.
+A specialized [PassthroughSubject](https://developer.apple.com/documentation/combine/passthroughsubject) that can never fail.
 
 ```swift
 let subject = GuaranteePassthroughSubject<Int>()
@@ -550,10 +615,10 @@ let subject = GuaranteePassthroughSubject<Int>()
 
 ### [GuaranteeReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeReplaySubject.swift)
 
-[ReplaySubject](https://github.com/CombineCommunity/CombineExt/blob/main/Sources/Subjects/ReplaySubject.swift) that can never fail.
+A specialized [ReplaySubject](https://github.com/CombineCommunity/CombineExt/blob/main/Sources/Subjects/ReplaySubject.swift) that can never fail.
 
 ```swift
-let subject = GuaranteeReplaySubject<Int>(buffering: 1)
+let subject = GuaranteeReplaySubject<Int>(buffering: 2)
 ```
 
 ## 🧵 Thread Safety

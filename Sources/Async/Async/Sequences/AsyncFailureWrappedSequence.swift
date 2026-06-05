@@ -1,5 +1,5 @@
 //
-//  AsyncFailableWrappedSequence.swift
+//  AsyncFailureWrappedSequence.swift
 //  Async
 //
 //  Created by Mitch Treece on 6/1/26.
@@ -9,8 +9,8 @@
 import Foundation
 
 /// An async sequence that wraps another non-failable sequence, and makes it look failable.
-public struct AsyncFailableWrappedSequence<Element: Sendable, Failure: Error>: AsyncSequence, @unchecked Sendable {
-    
+public struct AsyncFailureWrappedSequence<Element: Sendable, Failure: Error>: AsyncSequence, @unchecked Sendable {
+
     public typealias AsyncIterator = AsyncIteratorImpl
     
     private let wrapped: any AsyncSequence<Element, Never>
@@ -24,8 +24,8 @@ public struct AsyncFailableWrappedSequence<Element: Sendable, Failure: Error>: A
     }
 }
 
-extension AsyncFailableWrappedSequence {
- 
+extension AsyncFailureWrappedSequence {
+
     public struct AsyncIteratorImpl: AsyncIteratorProtocol {
         
         private var getNext: () async -> Element?

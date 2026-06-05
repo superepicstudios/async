@@ -1,5 +1,5 @@
 //
-//  StreamProtocol.swift
+//  Stream.swift
 //  Async
 //
 //  Created by Mitch Treece on 6/1/26.
@@ -7,14 +7,13 @@
 //
 
 @preconcurrency public import Combine
-@preconcurrency import CombineExt
 import Foundation
 
-// MARK: Stream
+// MARK: StreamBase
 
 /// Protocol describing a stream of elements.
-public protocol Stream<Element>: Sendable {
-    
+public protocol StreamBase<Element>: Sendable {
+
     /// The stream's element type.
     associatedtype Element: Sendable
 }
@@ -23,33 +22,33 @@ public protocol Stream<Element>: Sendable {
 
 /// Protocol describing a failable stream of elements.
 ///
-/// Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence), and Combine
-/// [publishers](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, and help bridge the gap between
-/// Combine usage, and modern async API's.
+/// Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence),
+/// and Combine [publishers](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, and
+/// help bridge the gap between Combine usage, and modern async API's.
 ///
 /// ```swift
 /// let stream = ValueStream<Int, Never>(0)
 ///
-/// stream.observe { element in
-///     print("Observe: \(element)")
+/// stream.observe { e in
+///     print("Observe: \(e)")
 /// }
 ///
-/// stream.sequence { sequence in
-///     for try await element in sequence {
-///         print("Sequence: \(element)")
+/// stream.sequence { seq in
+///     for try await e in seq {
+///         print("Sequence: \(e)")
 ///     }
 /// }
 ///
-/// stream.publisher.sink { value in
-///     print("Publisher: \(value)")
+/// stream.publisher.sink { e in
+///     print("Publisher: \(e)")
 /// }
 ///
 /// stream.send(1)
 /// stream.send(2)
 /// stream.send(3)
 /// ```
-public protocol FailableStream<Element, Failure>: Stream {
-    
+public protocol FailableStream<Element, Failure>: StreamBase {
+
     /// The stream's failure type.
     associatedtype Failure: Error
     
@@ -58,6 +57,11 @@ public protocol FailableStream<Element, Failure>: Stream {
     
     /// Gets a new async sequence for the stream.
     /// - returns: A new async sequence.
+    ///
+    /// - Note: You shouldn't usually need to call this directly. If you're trying to observe/iterate
+    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)``,
+    ///   ``observe(priority:receiveElement:receiveFailure:)``, or ``sink(receiveCompletion:receiveValue:)``
+    ///   functions.
     func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure>
 }
 
@@ -65,38 +69,38 @@ public protocol FailableStream<Element, Failure>: Stream {
 
 /// Protocol describing a non-failable stream of elements.
 ///
-/// Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence), and Combine
-/// [publishers](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, and help bridge the gap between
-/// Combine usage, and modern async API's.
+/// Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence),
+/// and Combine [publishers](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, and
+/// help bridge the gap between Combine usage, and modern async API's.
 ///
 /// ```swift
-/// let stream = ValueStream<Int, Never>(0) // failable
-/// let relay: AnyRelay<Int> = stream.eraseToAnyRelay() // non-failable
+/// let stream = JustStream<Int>(0)
 ///
-/// relay.observe { element in
-///     print("Observe: \(element)")
+/// stream.observe { e in
+///     print("Observe: \(e)")
 /// }
 ///
-/// relay.sequence { sequence in
-///     for await element in sequence {
-///         print("Sequence: \(element)")
+/// stream.sequence { seq in
+///     for await e in seq {
+///         print("Sequence: \(e)")
 ///     }
 /// }
 ///
-/// relay.publisher.sink { value in
-///     print("Publisher: \(value)")
+/// stream.publisher.sink { e in
+///     print("Publisher: \(e)")
 /// }
-///
-/// stream.send(1)
-/// stream.send(2)
-/// stream.send(3)
 /// ```
-public protocol NonFailableStream<Element>: Stream {
-    
+public protocol NonFailableStream<Element>: StreamBase {
+
     /// The stream's publisher.
     var publisher: any Publisher<Element, Never> { get }
     
     /// Gets a new async sequence for the stream.
     /// - returns: A new async sequence.
+    ///
+    /// - Note: You shouldn't usually need to call this directly. If you're trying to observe/iterate
+    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)``,
+    ///   ``observe(priority:receiveElement:receiveFailure:)``, or ``sink(receiveCompletion:receiveValue:)``
+    ///   functions.
     func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never>
 }

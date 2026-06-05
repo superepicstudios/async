@@ -12,27 +12,33 @@ import Foundation
 /// A specialized stream that buffers a single element, sends it to downstream consumers,
 /// never produces failures, and guarantees delivery on the main-actor.
 ///
-/// This is similar to ``AnyRelay``, except that element delivery is always isolated to the main-actor.
+/// This is similar to ``AnyRelay``, except that element delivery is always main-actor isolated.
 ///
 /// ```swift
 /// let driver = Driver<Int>(1)
 ///
-/// driver.observeOnMain { e in
-///     print("Received: \(e)")
+/// driver.sequenceOnMain { seq in
+///     for await e in seq {
+///         print("Received: \(e)")
+///     }
+///     print("Finished")
 /// }
 ///
 /// driver.send(2)
 /// driver.send(3)
+/// driver.send(completion: .finished)
 ///
 /// // → "Received: 1"
 /// // → "Received: 2"
 /// // → "Received: 3"
+/// // → "Finished"
 /// ```
 ///
-/// - Warning: While element **delivery** is guaranteed to be main-actor isolated,
-///   that same isolation cannot be enforced for ``AsyncSequence`` **observation**.
-///   It's recommended to use ``observeOnMain(receiveElement:)`` as this guarantees
-///   main-actor isolation for delivery **and** observation.
+/// - Warning: While element _delivery_ is guaranteed to be main-actor isolated,
+///   that same isolation cannot be enforced for direct ``AsyncSequence`` _observation_
+///   via ``makeAsyncSequence()``. It's recommended to use ``sequenceOnMain(body:)`` or
+///   ``observeOnMain(receiveElement:)`` as these enforce main-actor isolation for
+///   delivery _and_ observation.
 ///
 /// - SeeAlso: ``ValueStream``, ``AnyRelay``
 public final class Driver<Element: Sendable>: NonFailableStream {
@@ -67,9 +73,11 @@ extension Driver: StreamElementSending, NonFailableStreamCompletionSending {
 
 // MARK: Erasing
 
-extension Driver {
-    
-    func eraseToAnyDriver() -> AnyDriver<Element> {
+extension Driver: NonFailableStreamErasing {
+
+    /// Erases the stream into a read-only driver.
+    /// - returns: A type-erased driver.
+    public func eraseToAnyDriver() -> AnyDriver<Element> {
         AnyDriver(self)
     }
 }
@@ -78,24 +86,20 @@ extension Driver {
 
 extension Driver: StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension Driver: NonFailableStreamMainObserving {
-    
+extension Driver: StreamElementMainProviding, NonFailableStreamElementMainObserving {
+
+    @MainActor
+    public var latest: Element {
+        self.base.latest
+    }
+
+    @discardableResult
     public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
         self.base.observeOnMain(
             receiveElement: receiveElement,
             receiveFailure: nil
         )
-    }
-}
-
-// MARK: Element Providing
-
-extension Driver: StreamElementProviding {
-    
-    // @MainActor
-    public var latest: Element {
-        self.base.latest
     }
 }

@@ -12,12 +12,12 @@ import Espresso
 import Foundation
 import Synchronization
 
-/// A stream that replays a buffered amount of elements to downstream consumers.
+/// A stream that replays a buffered amount of latest elements to downstream consumers.
 ///
 /// ```swift
 /// let stream = ReplayStream<Int, Never>(buffering: 2)
 ///
-/// stream.send(0)
+/// stream.send(0) // Dropped (outside buffer)
 /// stream.send(1)
 /// stream.send(2)
 ///
@@ -82,10 +82,22 @@ extension ReplayStream: FailableStreamErasing {}
 
 extension ReplayStream: StreamSequencing, StreamMainSequencing {}
 
-// MARK: Observing
+// MARK: Element
 
-extension ReplayStream: FailableStreamObserving, FailableStreamMainObserving {
-    
+extension ReplayStream: StreamElementProviding, FailableStreamElementObserving, FailableStreamElementMainObserving {
+
+    public var latest: Element {
+        self.latestElement.withLock {
+            if let val = $0 { val }
+            else if let optional = $0 as? any OptionalRepresentable {
+                optional.wrappedValue as! Element
+            }
+            else {
+                fatalError(StreamError.emptyStream.localizedDescription)
+            }
+        }
+    }
+
     @discardableResult
     public func observe(
         priority: TaskPriority,
@@ -104,7 +116,7 @@ extension ReplayStream: FailableStreamObserving, FailableStreamMainObserving {
             } catch let error as Failure {
                 await receiveFailure?(error)
             } catch {
-                fatalError("Caught an unexpected error.")
+                fatalError(StreamError.unexpectedError.localizedDescription)
             }
         }
     }
@@ -126,28 +138,7 @@ extension ReplayStream: FailableStreamObserving, FailableStreamMainObserving {
             } catch let error as Failure {
                 await receiveFailure?(error)
             } catch {
-                fatalError("Caught an unexpected error.")
-            }
-        }
-    }
-}
-
-// MARK: Element Providing
-
-extension ReplayStream: StreamElementProviding {
-    
-    /// The stream's latest element.
-    ///
-    /// - Warning: This assumes the stream has elements in its buffer.
-    ///   If it doesn't, accessing this will throw a fatal error.
-    public var latest: Element {
-        self.latestElement.withLock {
-            if let val = $0 { val }
-            else if let optional = $0 as? any OptionalRepresentable {
-                optional.wrappedValue as! Element
-            }
-            else {
-                fatalError("Attempting to access the latest element of an empty stream. What are you doing developer?")
+                fatalError(StreamError.unexpectedError.localizedDescription)
             }
         }
     }
