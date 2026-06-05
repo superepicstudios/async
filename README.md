@@ -139,6 +139,8 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 #### [SignalStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/SignalStream.swift)
 
 A stream that sends signals to downstream consumers.
@@ -160,6 +162,8 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 #### [JustStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/JustStream.swift)
 
 A stream that buffers a single constant element, sends it to downstream consumers, never produces failures, and finishes immediately.
@@ -177,6 +181,8 @@ stream.sequence { seq in
 // → "Received: 1"
 // → "Finished"
 ```
+
+---
 
 #### [EmptyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/EmptyStream.swift)
 
@@ -265,6 +271,8 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 ### [AnyRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyRelay.swift)
 
 A type-erased stream of elements that never produces failures.
@@ -288,6 +296,8 @@ stream.send(3)
 // → "Received: 3"
 // → "Finished"
 ```
+
+---
 
 ### [AnyDriver](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/AnyDriver.swift)
 
@@ -378,6 +388,8 @@ value = 3
 // → "Element: 3"
 ```
 
+---
+
 ### [@Stream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Stream.swift)
 
 Wraps a `ValueStream`, and exposes an erased read-only `AnyStream`.
@@ -401,6 +413,8 @@ $stream.send(completion: .finished)
 // → "Element: 3"
 // → "Finished"
 ```
+
+---
 
 ### [@Relay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Relay.swift)
 
@@ -426,6 +440,8 @@ $relay.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 ### [@Drive](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Drive.swift)
 
 Wraps a `Driver`, and exposes an erased read-only `AnyDriver`.
@@ -449,6 +465,8 @@ $driver.send(completion: .finished)
 // → "Element: 3"
 // → "Finished"
 ```
+
+---
 
 ### [@Passthrough](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Passthrough.swift)
 
@@ -477,6 +495,8 @@ $stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 ### [@PassthroughRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@PassthroughRelay.swift)
 
 Wraps a `PassthroughStream`, and exposes an erased read-only `AnyRelay`.
@@ -504,6 +524,8 @@ $stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 ### [@Signal](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Signal.swift)
 
 Wraps a `SignalStream`, and exposes an erased read-only `AnyStream`.
@@ -525,6 +547,8 @@ $stream.send(completion: .finished)
 // → "Finished"
 ```
 
+---
+
 ### [@SignalRelay](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@SignalRelay.swift)
 
 Wraps a `SignalStream`, and exposes an erased read-only `AnyRelay`.
@@ -545,6 +569,8 @@ $relay.send(completion: .finished)
 // → "Received"
 // → "Finished"
 ```
+
+---
 
 ### [@Pipe](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PropertyWrappers/@Pipe.swift)
 
@@ -614,6 +640,8 @@ subject.send()
 // → "Signal"
 ```
 
+---
+
 ### [GuaranteeCurrentValueSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeCurrentValueSubject.swift)
 
 A specialized [CurrentValueSubject](https://developer.apple.com/documentation/combine/currentvaluesubject) that can never fail.
@@ -622,6 +650,8 @@ A specialized [CurrentValueSubject](https://developer.apple.com/documentation/co
 let subject = GuaranteeCurrentValueSubject<Int>(0)
 ```
 
+---
+
 ### [GuaranteePassthroughSubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteePassthroughSubject.swift)
 
 A specialized [PassthroughSubject](https://developer.apple.com/documentation/combine/passthroughsubject) that can never fail.
@@ -629,6 +659,8 @@ A specialized [PassthroughSubject](https://developer.apple.com/documentation/com
 ```swift
 let subject = GuaranteePassthroughSubject<Int>()
 ```
+
+---
 
 ### [GuaranteeReplaySubject](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Combine/Guaranteee/GuaranteeReplaySubject.swift)
 
