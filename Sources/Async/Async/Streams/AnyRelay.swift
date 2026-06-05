@@ -34,11 +34,7 @@ import Foundation
 ///
 /// - SeeAlso: ``AnyStream``, ``AnyDriver``
 public struct AnyRelay<Element: Sendable>: NonFailableStream {
-
-    public var publisher: any Publisher<Element, Never> {
-        self.wrapped.publisher
-    }
-
+    
     private let wrapped: Wrapped
 
     public init<S>(_ failable: S) where S: FailableStream, S.Element == Element {
@@ -51,6 +47,10 @@ public struct AnyRelay<Element: Sendable>: NonFailableStream {
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
         self.wrapped.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Never> {
+        self.wrapped.makePublisher()
     }
 }
 
@@ -65,7 +65,7 @@ extension AnyRelay {
         let makeAsyncSequence: @Sendable () -> any AsyncSendableSequence<Element, Never>
 
         init<S>(_ stream: S) where S: FailableStream, S.Element == Element {
-            self.publisher = NeverWrappedPublisher<Element, S.Failure>(stream.publisher)
+            self.publisher = NeverWrappedPublisher<Element, S.Failure>(stream.makePublisher())
             self.elementProvider = stream as? any StreamElementProviding<Element>
             self.makeAsyncSequence = { AsyncNeverWrappedSequence<Element, S.Failure>(stream.makeAsyncSequence()) }
         }
@@ -75,15 +75,6 @@ extension AnyRelay {
 
         case failable(FailableStreamBox)
         case nonFailable(any NonFailableStream<Element>)
-
-        var publisher: any Publisher<Element, Never> {
-            switch self {
-            case let .failable(box):
-                box.publisher
-            case let .nonFailable(nonFailable):
-                nonFailable.publisher
-            }
-        }
 
         var elementProvider: (any StreamElementProviding<Element>)? {
             switch self {
@@ -100,6 +91,15 @@ extension AnyRelay {
                 box.makeAsyncSequence()
             case let .nonFailable(nonFailable):
                 nonFailable.makeAsyncSequence()
+            }
+        }
+        
+        func makePublisher() -> any Publisher<Element, Never> {
+            switch self {
+            case let .failable(box):
+                box.publisher
+            case let .nonFailable(nonFailable):
+                nonFailable.makePublisher()
             }
         }
     }

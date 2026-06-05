@@ -39,14 +39,14 @@ public final class PassthroughStream<Element: Sendable, Failure: Error>: Failabl
         
     private let base = ReplayStream<Element, Failure>(buffering: 0)
     
-    public var publisher: any Publisher<Element, Failure> {
-        self.base.publisher
-    }
-    
     public init() {}
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure> {
         self.base.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Failure> {
+        self.base.makePublisher()
     }
 }
 

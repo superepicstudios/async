@@ -404,7 +404,7 @@ struct StreamTests {
     func `driver delivers elements on the main-actor`() async {
 
         let sut = Driver<Int>(1)
-        let publisher = sut.publisher
+        let publisher = sut.makePublisher()
         let testablePublisher = publisher.testable()
 
         sut.sequenceOnMain {

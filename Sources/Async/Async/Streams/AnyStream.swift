@@ -34,10 +34,6 @@ import Foundation
 ///
 /// - SeeAlso: ``AnyRelay``, ``AnyDriver``
 public struct AnyStream<Element: Sendable, Failure: Error>: FailableStream {
-
-    public var publisher: any Publisher<Element, Failure> {
-        self.wrapped.publisher
-    }
     
     private let wrapped: Wrapped
     
@@ -52,6 +48,10 @@ public struct AnyStream<Element: Sendable, Failure: Error>: FailableStream {
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure> {
         self.wrapped.makeAsyncSequence()
     }
+    
+    public func makePublisher() -> any Publisher<Element, Failure> {
+        self.wrapped.makePublisher()
+    }
 }
 
 // MARK: Wrapped
@@ -62,15 +62,6 @@ extension AnyStream {
 
         case failable(any FailableStream<Element, Failure>)
         case nonFailable(any NonFailableStream<Element>)
-
-        var publisher: any Publisher<Element, Failure> {
-            return switch self {
-            case let .failable(failable):
-                failable.publisher
-            case let .nonFailable(nonFailable):
-                FailureWrappedPublisher(nonFailable.publisher)
-            }
-        }
 
         var elementProvider: (any StreamElementProviding<Element>)? {
             switch self {
@@ -87,6 +78,15 @@ extension AnyStream {
                 failable.makeAsyncSequence()
             case let .nonFailable(nonFailable):
                 AsyncFailureWrappedSequence<Element, Failure>(nonFailable.makeAsyncSequence())
+            }
+        }
+        
+        func makePublisher() -> any Publisher<Element, Failure> {
+            return switch self {
+            case let .failable(failable):
+                failable.makePublisher()
+            case let .nonFailable(nonFailable):
+                FailureWrappedPublisher(nonFailable.makePublisher())
             }
         }
     }

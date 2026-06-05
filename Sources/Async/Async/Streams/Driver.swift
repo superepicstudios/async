@@ -37,15 +37,11 @@ import Foundation
 /// - Warning: While element _delivery_ is guaranteed to be main-actor isolated,
 ///   that same isolation cannot be enforced for direct ``AsyncSequence`` _observation_
 ///   via ``makeAsyncSequence()``. It's recommended to use ``sequenceOnMain(body:)`` or
-///   ``observeOnMain(receiveElement:)`` as these enforce main-actor isolation for
+///   ``observeOnMain(onElement:onFinished:)`` as these enforce main-actor isolation for
 ///   delivery _and_ observation.
 ///
 /// - SeeAlso: ``ValueStream``, ``AnyRelay``
 public final class Driver<Element: Sendable>: NonFailableStream {
-    
-    public var publisher: any Publisher<Element, Never> {
-        MainQueuePublisher<Element, Never>(self.base.publisher)
-    }
     
     private let base: ValueStream<Element, Never>
     
@@ -55,6 +51,10 @@ public final class Driver<Element: Sendable>: NonFailableStream {
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
         AsyncMainActorSequence<Element, Never>(self.base.makeAsyncSequence())
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Never> {
+        MainQueuePublisher<Element, Never>(self.base.makePublisher())
     }
 }
 

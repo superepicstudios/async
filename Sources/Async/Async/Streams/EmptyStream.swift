@@ -28,10 +28,6 @@ public final class EmptyStream: NonFailableStream {
     
     public typealias Element = ()
     
-    public var publisher: any Publisher<(), Never> {
-        self.base.publisher
-    }
-    
     private let base: PassthroughStream<(), Never>
 
     public init() {
@@ -41,6 +37,10 @@ public final class EmptyStream: NonFailableStream {
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<(), Never> {
         self.base.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<(), Never> {
+        self.base.makePublisher()
     }
 }
 

@@ -34,10 +34,6 @@ import Foundation
 /// - SeeAlso: ``ReplayStream``, ``CurrentValueSubject``
 public final class ValueStream<Element: Sendable, Failure: Error>: FailableStream {
     
-    public var publisher: any Publisher<Element, Failure> {
-        self.base.publisher
-    }
-    
     private let base = ReplayStream<Element, Failure>(buffering: 1)
     
     public init(_ initial: Element) {
@@ -46,6 +42,10 @@ public final class ValueStream<Element: Sendable, Failure: Error>: FailableStrea
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure> {
         self.base.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Failure> {
+        self.base.makePublisher()
     }
 }
 

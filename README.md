@@ -43,77 +43,11 @@ Streams are unions between the standard library's [AsyncSequence](https://develo
 
 ### Sequencing & Observation
 
-<!--> [!WARNING]
-> **TODO**: Explain the different stream observation methods, and when to use which one.
-> Also explain why synchronous sequence & observe functions are preferred over direct iteration via `makeAsyncSequence()`.
-
-- `sequence(body:)` & `sequenceOnMain(body:)`
-- `observe(priority:onElement:onFailure:onFinished:)` & `observeOnMain(onElement:onFailure:onFinished:)`-->
-
-Streams provide a few different ways to iterate over, and consume elements. Usage depends on your use-case, and the observation semantics that work best for your scenario.
-
-#### Sequencing
-
-TODO: Description
-
-```swift
-let stream = ValueStream<Int, Never>(1)
-
-stream.sequence { seq in
-    for try await e in seq {
-        print("Received: \(e)")
-    }
-    print("Finished")
-}
-
-stream.send(2)
-stream.send(3)
-stream.send(completion: .finished)
-
-// → "Received: 1"
-// → "Received: 2"
-// → "Received: 3"
-// → "Finished"
-```
-
-```swift
-stream.sequenceOnMain {
-    // @MainActor isolated
-}
-```
-
-#### Observation
-
-TODO: Description
-
-```swift
-let stream = ValueStream<Int, Never>(1)
-
-stream.observe { e in
-    print("Received: \(e)")
-} onFinished: {
-    print("Finished")
-}
-
-stream.send(2)
-stream.send(3)
-stream.send(completion: .finished)
-
-// → "Received: 1"
-// → "Received: 2"
-// → "Received: 3"
-// → "Finished"
-```
-
-```swift
-stream.observeOnMain {
-    // @MainActor isolated
-}
-```
+Streams provide a few different ways to iterate over and consume elements. Usage depends on your use-case, and the observation semantics that work best for your scenario.
 
 #### Iteration & Sinking
 
-TODO: Description
+Because streams are wrappers for [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and [Publisher](https://developer.apple.com/documentation/combine/publisher), you can directly iterate or sink on them:
 
 ```swift
 let stream = ValueStream<Int, Never>(1)
@@ -138,7 +72,7 @@ stream.send(completion: .finished)
 
 ```swift
 let stream = ValueStream<Int, Never>(1)
-let publisher: any Publisher<Int, Never> = stream.publisher
+let publisher: any Publisher<Int, Never> = stream.makePublisher()
 
 publisher.sink { completion in
     switch completion {
@@ -157,6 +91,111 @@ stream.send(completion: .finished)
 // → "Received: 2"
 // → "Received: 3"
 // → "Finished"
+```
+
+If this is all you need, you're good to go 🙌🏻 However, streams also provide a streamlined api's that further simplify iteration.
+
+> [!NOTE]
+> Keep in mind that the iteration over an [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) happens _asynchronously_.
+> While sending an element to a stream is _synchronous_ operation (not `async`, does not suspend), the delivery of the element is _not_.
+
+---
+
+#### Sequencing
+
+You don't actually need to make a stream's sequence yourself via `makeAsyncSequence()`. Streams support _sequencing_, which exposes a dedicated `sequence` function:
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+
+stream.sequence { seq in
+    for try await e in seq {
+        print("Received: \(e)")
+    }
+    print("Finished")
+}
+
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+// → "Finished"
+```
+
+This _synchronously_ creates a sequence for you behind the scenes, and passes it to you via an `async` closure. Sequencing functions also return their underlying observation tasks if you need access to them:
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+
+let task = stream.sequence { seq in
+    var results = [Int]()
+    for try await e in seq {
+        results.append(e)
+    }
+    return results
+}
+
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+print(try await task.value) // → "[1, 2, 3]"
+```
+
+In addition, sequencing functions also support main-actor isolation via:
+
+```swift
+stream.sequenceOnMain {
+    // @MainActor isolated
+}
+```
+
+---
+
+#### Observation
+
+Most of the time you don't actually care about the sequence itself, just the things it produces. Streams support _element observation_, which exposes a dedicated `observe` function:
+
+```swift
+let stream = ValueStream<Int, Never>(1)
+
+stream.observe { e in
+    print("Received: \(e)")
+} onFinished: {
+    print("Finished")
+}
+
+stream.send(2)
+stream.send(3)
+stream.send(completion: .finished)
+
+// → "Received: 1"
+// → "Received: 2"
+// → "Received: 3"
+// → "Finished"
+```
+
+This abstracts away the sequence, and just gives you the things you care about via `async` closures. Observation functions support elements, failures, & completions depending on the failability of the parent stream. They also return their underlying observation tasks, just like `sequence`.
+
+```swift
+let task = stream.observe { e in 
+    // Received element
+} onFailure: { err in
+    // Received error
+} onFinished: {
+    // Received completion
+}
+```
+
+Finally, observation functions also support main-actor isolation:
+
+```swift
+stream.observeOnMain {
+    // @MainActor isolated
+}
 ```
 
 ### Stream Types

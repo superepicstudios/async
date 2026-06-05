@@ -39,7 +39,7 @@ public protocol StreamBase<Element>: Sendable {
 ///     }
 /// }
 ///
-/// stream.publisher.sink { e in
+/// stream.makePublisher().sink { e in
 ///     print("Publisher: \(e)")
 /// }
 ///
@@ -52,17 +52,17 @@ public protocol FailableStream<Element, Failure>: StreamBase {
     /// The stream's failure type.
     associatedtype Failure: Error
     
-    /// The stream's publisher.
-    var publisher: any Publisher<Element, Failure> { get }
-    
     /// Gets a new async sequence for the stream.
-    /// - returns: A new async sequence.
+    /// - returns: An async stream sequence.
     ///
     /// - Note: You shouldn't usually need to call this directly. If you're trying to observe/iterate
-    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)``,
-    ///   ``observe(priority:receiveElement:receiveFailure:)``, or ``sink(receiveCompletion:receiveValue:)``
-    ///   functions.
+    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)`` or
+    ///   ``observe(priority:onElement:onFailure:onFinished:)`` functions.
     func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure>
+    
+    /// Gets a publisher for the stream.
+    /// - returns: A stream publisher.
+    func makePublisher() -> any Publisher<Element, Failure>
 }
 
 // MARK: NonFailableStream
@@ -86,21 +86,21 @@ public protocol FailableStream<Element, Failure>: StreamBase {
 ///     }
 /// }
 ///
-/// stream.publisher.sink { e in
+/// stream.makePublisher().sink { e in
 ///     print("Publisher: \(e)")
 /// }
 /// ```
 public protocol NonFailableStream<Element>: StreamBase {
-
-    /// The stream's publisher.
-    var publisher: any Publisher<Element, Never> { get }
     
     /// Gets a new async sequence for the stream.
     /// - returns: A new async sequence.
     ///
     /// - Note: You shouldn't usually need to call this directly. If you're trying to observe/iterate
-    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)``,
-    ///   ``observe(priority:receiveElement:receiveFailure:)``, or ``sink(receiveCompletion:receiveValue:)``
-    ///   functions.
+    ///   over the stream's elements, it's recommended to use the ``sequence(priority:body:)`` or
+    ///   ``observe(priority:onElement:onFailure:onFinished:)`` functions.
     func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never>
+    
+    /// Gets a publisher for the stream.
+    /// - returns: A stream publisher.
+    func makePublisher() -> any Publisher<Element, Never>
 }

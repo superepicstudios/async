@@ -40,10 +40,6 @@ import Synchronization
 /// - SeeAlso: ``CombineExt/ReplaySubject``
 public final class ReplayStream<Element: Sendable, Failure: Error>: FailableStream, @unchecked Sendable {
     
-    public var publisher: any Publisher<Element, Failure> {
-        self.subject
-    }
-    
     private let subject: ReplaySubject<Element, Failure>
     private let latestElement = Mutex<Element?>(nil)
     
@@ -57,6 +53,10 @@ public final class ReplayStream<Element: Sendable, Failure: Error>: FailableStre
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Failure> {
         AsyncPublisherSequence(self.subject)
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Failure> {
+        self.subject
     }
 }
 

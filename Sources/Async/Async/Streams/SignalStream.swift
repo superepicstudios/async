@@ -35,14 +35,14 @@ public final class SignalStream<Failure: Error>: FailableStream {
     
     private let base = PassthroughStream<(), Failure>()
     
-    public var publisher: any Publisher<(), Failure> {
-        self.base.publisher
-    }
-    
     public init() {}
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<(), Failure> {
         self.base.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<(), Failure> {
+        self.base.makePublisher()
     }
 }
 

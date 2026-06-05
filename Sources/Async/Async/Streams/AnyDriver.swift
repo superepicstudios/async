@@ -35,10 +35,6 @@ import Foundation
 /// - SeeAlso: ``Driver``, ``AnyStream``, ``AnyRelay``
 public struct AnyDriver<Element: Sendable>: NonFailableStream {
     
-    public var publisher: any Publisher<Element, Never> {
-        self.wrapped.publisher
-    }
-    
     private let wrapped: Driver<Element>
     
     public init(_ wrapped: Driver<Element>) {
@@ -47,6 +43,10 @@ public struct AnyDriver<Element: Sendable>: NonFailableStream {
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
         self.wrapped.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Never> {
+        self.wrapped.makePublisher()
     }
 }
 

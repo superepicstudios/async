@@ -67,7 +67,7 @@ public final class Pipe<Element: Sendable>: Sendable {
         to stream: S,
         priority: TaskPriority = .medium
     ) -> AnyCancellable where S.Element == Element, S.Failure == Never {
-        let subscription = stream.publisher.sink { [weak self] in
+        let subscription = stream.makePublisher().sink { [weak self] in
             self?.wrappedValue = $0
         }
         
@@ -84,7 +84,7 @@ public final class Pipe<Element: Sendable>: Sendable {
         to stream: S,
         priority: TaskPriority = .medium
     ) -> AnyCancellable where S.Element == Element {
-        let subscription = stream.publisher.sink { [weak self] in
+        let subscription = stream.makePublisher().sink { [weak self] in
             self?.wrappedValue = $0
         }
         

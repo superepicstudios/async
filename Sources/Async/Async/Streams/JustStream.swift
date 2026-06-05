@@ -28,10 +28,6 @@ import Foundation
 /// - SeeAlso: ``ValueStream``, ``Combine/Publisher.Just``
 public final class JustStream<Element: Sendable>: NonFailableStream {
     
-    public var publisher: any Publisher<Element, Never> {
-        self.base.publisher
-    }
-    
     private let base: ValueStream<Element, Never>
     
     public init(_ element: Element) {
@@ -41,6 +37,10 @@ public final class JustStream<Element: Sendable>: NonFailableStream {
     
     public func makeAsyncSequence() -> any AsyncSendableSequence<Element, Never> {
         self.base.makeAsyncSequence()
+    }
+    
+    public func makePublisher() -> any Publisher<Element, Never> {
+        self.base.makePublisher()
     }
 }
 
