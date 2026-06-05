@@ -12,7 +12,6 @@ Async data-over-time, flow, & extension library that builds on the amazing work 
 - [📡 Relays & Drivers](#-relays-&-drivers)
 - [😶‍🌫️ Erasure](#-erasure)
 - [📦 Property Wrappers](#property-wrappers)
-- [🤝🏻 TaskActor](#-taskactor)
 - [🔀 Combine](#-combine)
 - [🧵 Thread Safety](#-thread-safety)
 - [🗺️ Roadmap](#-roadmap)
@@ -595,25 +594,6 @@ print("Pipe: \(pipe)")
 // → "Pipe: 1"
 // → "Pipe: 2"
 // → "Pipe: 3"
-```
-
-## 🤝🏻 TaskActor
-
-Swift's introduction of [structured concurrency](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency) was a little heavy handed, to say the least. Even with recent enhancements, there are still some gaps and areas that could use a little love. One of these areas is task isolation. Async adds a new actor, [TaskActor](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/TaskActor.swift), that helps isolate & execute tasks from other unrelated contexts.
-
-```swift
-final class ValueProvider: Sendable {
-
-    private(set) var value: Int = 0
-    private let generator = NumberGenerator()
-    private let updateTask = TaskActor<Int>()
-
-    func update() async {
-        self.value = await self.updateTask.run { [weak self] in
-            await self?.generator.generate() ?? 0
-        }
-    }
-}
 ```
 
 ## 🔀 Combine
