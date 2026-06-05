@@ -123,26 +123,32 @@ extension AnyRelay: StreamElementProviding, NonFailableStreamElementObserving, N
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
         guard let observer = self.wrapped as? any NonFailableStreamElementObserving<Element> else {
             return Task {}
         }
+        
         return observer.observe(
             priority: priority,
-            receiveElement: receiveElement
+            onElement: onElement,
+            onFinished: onFinished
         )
     }
     
     @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
         guard let observer = self.wrapped as? any NonFailableStreamElementMainObserving<Element> else {
             return Task {}
         }
+        
         return observer.observeOnMain(
-            receiveElement: receiveElement
+            onElement: onElement,
+            onFinished: onFinished
         )
     }
 }

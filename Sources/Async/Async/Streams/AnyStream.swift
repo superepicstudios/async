@@ -107,31 +107,39 @@ extension AnyStream: StreamElementProviding, FailableStreamElementObserving, Fai
         return element
     }
 
+    @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)?
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)?,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
         guard let observer = self.wrapped as? any FailableStreamElementObserving<Element, Failure> else {
             return Task {}
         }
+        
         return observer.observe(
             priority: priority,
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
     
+    @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)?
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)?,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
         guard let observer = self.wrapped as? any FailableStreamElementMainObserving<Element, Failure> else {
             return Task {}
         }
+        
         return observer.observeOnMain(
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
 }

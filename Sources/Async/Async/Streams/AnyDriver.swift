@@ -62,8 +62,15 @@ extension AnyDriver: StreamElementMainProviding, NonFailableStreamElementMainObs
     public var latest: Element {
         self.wrapped.latest
     }
-
-    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
-        self.wrapped.observeOnMain(receiveElement: receiveElement)
+    
+    @discardableResult
+    public func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)?
+    ) -> Task<Void, Never> {
+        self.wrapped.observeOnMain(
+            onElement: onElement,
+            onFinished: onFinished
+        )
     }
 }

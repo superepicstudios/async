@@ -96,10 +96,13 @@ extension Driver: StreamElementMainProviding, NonFailableStreamElementMainObserv
     }
 
     @discardableResult
-    public func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never> {
+    public func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)?
+    ) -> Task<Void, Never> {
         self.base.observeOnMain(
-            receiveElement: receiveElement,
-            receiveFailure: nil
+            onElement: onElement,
+            onFinished: onFinished
         )
     }
 }

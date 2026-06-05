@@ -59,16 +59,24 @@ extension EmptyStream: NonFailableStreamElementObserving, NonFailableStreamEleme
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (()) async -> Void
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observe(
             priority: priority,
-            receiveElement: receiveElement
+            onElement: onElement,
+            onFinished: onFinished
         )
     }
     
     @discardableResult
-    public func observeOnMain(receiveElement: @escaping @MainActor (()) async -> Void) -> Task<Void, Never> {
-        self.base.observeOnMain(receiveElement: receiveElement)
+    public func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)?
+    ) -> Task<Void, Never> {
+        self.base.observeOnMain(
+            onElement: onElement,
+            onFinished: onFinished
+        )
     }
 }

@@ -101,21 +101,25 @@ extension ReplayStream: StreamElementProviding, FailableStreamElementObserving, 
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)?
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)?,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
         
         let sequence = makeAsyncSequence() as! AsyncPublisherSequence<Element, Failure>
         var iterator = sequence.makeAsyncIterator()
-
+        
         return Task(priority: priority) {
             do {
                 while let element = try await iterator.next() {
-                    await receiveElement(element)
+                    await onElement(element)
                 }
-            } catch let error as Failure {
-                await receiveFailure?(error)
-            } catch {
+                await onFinished?()
+            }
+            catch let error as Failure {
+                await onFailure?(error)
+            }
+            catch {
                 fatalError(StreamError.unexpectedError.localizedDescription)
             }
         }
@@ -123,21 +127,25 @@ extension ReplayStream: StreamElementProviding, FailableStreamElementObserving, 
     
     @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)?
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)?,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
         
         let sequence = makeAsyncSequence() as! AsyncPublisherSequence<Element, Failure>
         var iterator = sequence.makeAsyncIterator()
-
+        
         return Task(priority: .high) {
             do {
                 while let element = try await iterator.next() {
-                    await receiveElement(element)
+                    await onElement(element)
                 }
-            } catch let error as Failure {
-                await receiveFailure?(error)
-            } catch {
+                await onFinished?()
+            }
+            catch let error as Failure {
+                await onFailure?(error)
+            }
+            catch {
                 fatalError(StreamError.unexpectedError.localizedDescription)
             }
         }

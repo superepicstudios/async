@@ -21,14 +21,16 @@ public protocol FailableStreamElementObserving<Element, Failure> {
     
     /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
-    /// - parameter receiveFailure: A closure called when the stream receives a failure.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFailure: A closure called when the stream receives a failure.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
     func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)?
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)?,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never>
 }
 
@@ -36,19 +38,22 @@ extension FailableStreamElementObserving {
 
     /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
-    /// - parameter receiveFailure: A closure called when the stream receives a failure.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFailure: A closure called when the stream receives a failure.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
     public func observe(
         priority: TaskPriority = .medium,
-        receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)? = nil
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)? = nil,
+        onFinished: (@Sendable () async -> Void)? = nil
     ) -> Task<Void, Never> {
         observe(
             priority: priority,
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
 }
@@ -65,30 +70,35 @@ public protocol FailableStreamElementMainObserving<Element, Failure> {
     associatedtype Failure: Error
     
     /// Observes the stream's elements on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
-    /// - parameter receiveFailure: A closure called when the stream receives a failure.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFailure: A closure called when the stream receives a failure.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
     func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)?
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)?,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never>
 }
 
 extension FailableStreamElementMainObserving {
 
     /// Observes the stream's elements on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
-    /// - parameter receiveFailure: A closure called when the stream receives a failure.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFailure: A closure called when the stream receives a failure.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
-    func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)? = nil
+    public func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)? = nil,
+        onFinished: (@MainActor () async -> Void)? = nil
     ) -> Task<Void, Never> {
         observeOnMain(
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
 }
@@ -103,12 +113,14 @@ public protocol NonFailableStreamElementObserving<Element> {
     
     /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
     func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never>
 }
 
@@ -116,16 +128,19 @@ extension NonFailableStreamElementObserving {
 
     /// Observes the stream's elements.
     /// - parameter priority: An observation task priority.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
-    func observe(
+    public func observe(
         priority: TaskPriority = .medium,
-        receiveElement: @escaping @Sendable (Element) async -> Void
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFinished: (@Sendable () async -> Void)? = nil
     ) -> Task<Void, Never> {
         observe(
             priority: priority,
-            receiveElement: receiveElement
+            onElement: onElement,
+            onFinished: onFinished
         )
     }
 }
@@ -139,8 +154,30 @@ public protocol NonFailableStreamElementMainObserving<Element> {
     associatedtype Element: Sendable
     
     /// Observes the stream's elements on the main-actor.
-    /// - parameter receiveElement: A closure called when the stream receives an element.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFinished: A closure called when the stream finishes.
     /// - returns: An observation task.
     @discardableResult
-    func observeOnMain(receiveElement: @escaping @MainActor (Element) async -> Void) -> Task<Void, Never>
+    func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)?
+    ) -> Task<Void, Never>
+}
+
+extension NonFailableStreamElementMainObserving {
+
+    /// Observes the stream's elements on the main-actor.
+    /// - parameter onElement: A closure called when the stream receives an element.
+    /// - parameter onFinished: A closure called when the stream finishes.
+    /// - returns: An observation task.
+    @discardableResult
+    public func observeOnMain(
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFinished: (@MainActor () async -> Void)? = nil
+    ) -> Task<Void, Never> {
+        observeOnMain(
+            onElement: onElement,
+            onFinished: onFinished
+        )
+    }
 }

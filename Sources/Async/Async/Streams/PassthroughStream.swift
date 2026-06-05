@@ -78,24 +78,28 @@ extension PassthroughStream: FailableStreamElementObserving, FailableStreamEleme
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (Element) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)?
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)?,
+        onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observe(
             priority: priority,
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
     
     @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (Element) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)?
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)?,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observeOnMain(
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
 }

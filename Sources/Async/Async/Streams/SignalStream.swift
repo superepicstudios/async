@@ -74,24 +74,28 @@ extension SignalStream: FailableStreamElementObserving, FailableStreamElementMai
     @discardableResult
     public func observe(
         priority: TaskPriority,
-        receiveElement: @escaping @Sendable (()) async -> Void,
-        receiveFailure: (@Sendable (Failure) async -> Void)?
-    ) -> Task<(), Never> {
+        onElement: @escaping @Sendable (Element) async -> Void,
+        onFailure: (@Sendable (Failure) async -> Void)?,
+        onFinished: (@Sendable () async -> Void)?
+    ) -> Task<Void, Never> {
         self.base.observe(
             priority: priority,
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
     
     @discardableResult
     public func observeOnMain(
-        receiveElement: @escaping @MainActor (()) async -> Void,
-        receiveFailure: (@MainActor (Failure) async -> Void)?
+        onElement: @escaping @MainActor (Element) async -> Void,
+        onFailure: (@MainActor (Failure) async -> Void)?,
+        onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
         self.base.observeOnMain(
-            receiveElement: receiveElement,
-            receiveFailure: receiveFailure
+            onElement: onElement,
+            onFailure: onFailure,
+            onFinished: onFinished
         )
     }
 }
