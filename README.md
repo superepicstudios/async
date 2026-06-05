@@ -93,7 +93,7 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-If this is all you need, you're good to go 🙌🏻 However, streams also provide a streamlined api's that further simplify iteration.
+If this is all you need, you're good to go 🙌🏻 However, streams also provide streamlined api's that further simplify iteration.
 
 > [!NOTE]
 > Keep in mind that the iteration over an [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) happens _asynchronously_.
