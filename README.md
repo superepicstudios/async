@@ -42,9 +42,22 @@ This package is split into three distinct modules:
 
 ## 🌊 Streams
 
-Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and Combine's [Publisher](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, help bridge the gap between [Combine](https://developer.apple.com/documentation/combine) and modern async api's, and above all else - make working with async data fun again 🎉. In addition to wrapping `AsyncSequence` and `Publisher`, they also come with a wide range of built-in helpers, shortcuts, and syntax sugar. Streams have several different flavors that both reflect and extend their Combine [subject](https://developer.apple.com/documentation/combine/subject) counterparts.
+Streams are unions between the standard library's [AsyncSequence](https://developer.apple.com/documentation/Swift/AsyncSequence) and Combine's [Publisher](https://developer.apple.com/documentation/combine/publisher). They can be used in either context, help bridge the gap between [Combine](https://developer.apple.com/documentation/combine) and modern async api's, and above all else - make working with async data fun again 🎉. In addition to wrapping `AsyncSequence` and `Publisher`, they also come with a wide range of built-in helpers, shortcuts, and syntax sugar.
 
-### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift)
+### Sequencing & Observation
+
+> [!WARNING]
+> **TODO**: Explain the different stream observation methods, and when to use which one.
+> Also explain why synchronous sequence & observe functions are preferred over direct iteration via `makeAsyncSequence()`.
+
+- `sequence(body:)` & `sequenceOnMain(body:)`
+- `observe(priority:receiveElement:receiveFailure:)` & `observeOnMain(receiveElement:receiveFailure:)`
+
+### Stream Types
+
+Streams have several different flavors that both reflect and extend their Combine [subject](https://developer.apple.com/documentation/combine/subject) counterparts.
+
+#### [ReplayStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ReplayStream.swift)
 
 A stream that replays a buffered amount of elements to downstream consumers.
 
@@ -71,7 +84,7 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-### [ValueStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ValueStream.swift)
+#### [ValueStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/ValueStream.swift)
 
 A stream that buffers a single element, and sends it to downstream consumers.
 
@@ -95,7 +108,7 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-### [PassthroughStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PassthroughStream.swift)
+#### [PassthroughStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/PassthroughStream.swift)
 
 A stream that doesn't buffer any elements, and sends new ones to downstream consumers.
 
@@ -122,7 +135,7 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-### [SignalStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/SignalStream.swift)
+#### [SignalStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/SignalStream.swift)
 
 A stream that sends signals to downstream consumers.
 
@@ -143,7 +156,7 @@ stream.send(completion: .finished)
 // → "Finished"
 ```
 
-### [JustStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/JustStream.swift)
+#### [JustStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/JustStream.swift)
 
 A stream that buffers a single constant element, sends it to downstream consumers, never produces failures, and finishes immediately.
 
@@ -161,7 +174,7 @@ stream.sequence { seq in
 // → "Finished"
 ```
 
-### [EmptyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/EmptyStream.swift)
+#### [EmptyStream](https://github.com/superepicstudios/Async/blob/main/Sources/Async/Async/Streams/EmptyStream.swift)
 
 A stream that produces no elements or failures, and finishes immediately.
 
@@ -182,7 +195,7 @@ stream.sequence { seq in
 
 Streams are already easy to work with, but we don't always need the failure semantics most of them carry. When working in no-failure situations, we can leverage the specialized non-failable `Relay` and `Driver` streams.
 
-### Relays
+### Relay
 
 Simply put, relays are just streams that _never_ send failures. Or rather, they either never produce, or swallow errors internally. Relays are not concrete stream types like the ones shown above. Instead, you _erase_ existing streams into relays. More on that in the next section.
 
