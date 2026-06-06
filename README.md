@@ -831,6 +831,7 @@ Under the hood, this macro generates and maintains a mutex for you. All `get` & 
 - [x] `0.0.1` (Initial Release)
 - [ ] `0.1.0` (Stable Beta Release)
 - [ ] `1.0.0` (Official Release)
+  - [ ] Stream operators
   - [ ] Full documentation pass
   - [ ] Full test-coverage pass
   - [ ] Finalize demo project
