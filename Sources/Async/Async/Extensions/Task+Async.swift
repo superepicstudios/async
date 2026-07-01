@@ -29,6 +29,22 @@ extension Task {
 
 extension Task where Success == Never, Failure == Never {
     
+    /// Suspends the current task for a given duration, and swallows thrown errors.
+    /// - parameter duration: A duration to sleep for.
+    /// - parameter tolerance: An allowed sleep tolerance.
+    /// - parameter clock: A clock to use for sleeping.
+    public static func sleepNonThrowing<C: Clock>(
+        for duration: C.Instant.Duration,
+        tolerance: C.Instant.Duration? = nil,
+        using clock: C = .continuous
+    ) async {
+        try? await sleep(
+            for: duration,
+            tolerance: tolerance,
+            clock: clock
+        )
+    }
+    
     /// Performs a body of work, enforcing a minimum execution duration.
     /// - parameter duration: The minimum duration.
     /// - parameter body: The work to execute.
