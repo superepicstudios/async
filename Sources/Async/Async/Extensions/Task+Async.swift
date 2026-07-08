@@ -27,6 +27,12 @@ extension Task {
     }
 }
 
+extension Task where Success == Void, Failure == Never {
+    
+    /// An empty task that performs no work, and never fails.
+    public static var empty: Self { .init() {} }
+}
+
 extension Task where Success == Never, Failure == Never {
     
     /// Suspends the current task for a given duration, and swallows thrown errors.

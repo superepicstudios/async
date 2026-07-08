@@ -114,16 +114,27 @@ extension AnyStream: StreamElementProviding, FailableStreamElementObserving, Fai
         onFailure: (@Sendable (Failure) async -> Void)?,
         onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
-        guard let observer = self.wrapped as? any FailableStreamElementObserving<Element, Failure> else {
-            return Task {}
+        switch self.wrapped {
+        case let .failable(stream):
+            guard let observer = stream as? any FailableStreamElementObserving<Element, Failure> else {
+                return Task.empty
+            }
+            return observer.observe(
+                priority: priority,
+                onElement: onElement,
+                onFailure: onFailure,
+                onFinished: onFinished
+            )
+        case let .nonFailable(stream):
+            guard let observer = stream as? any NonFailableStreamElementObserving<Element> else {
+                return Task.empty
+            }
+            return observer.observe(
+                priority: priority,
+                onElement: onElement,
+                onFinished: onFinished
+            )
         }
-        
-        return observer.observe(
-            priority: priority,
-            onElement: onElement,
-            onFailure: onFailure,
-            onFinished: onFinished
-        )
     }
     
     @discardableResult
@@ -132,14 +143,24 @@ extension AnyStream: StreamElementProviding, FailableStreamElementObserving, Fai
         onFailure: (@MainActor (Failure) async -> Void)?,
         onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
-        guard let observer = self.wrapped as? any FailableStreamElementMainObserving<Element, Failure> else {
-            return Task {}
+        switch self.wrapped {
+        case let .failable(stream):
+            guard let observer = stream as? any FailableStreamElementMainObserving<Element, Failure> else {
+                return Task.empty
+            }
+            return observer.observeOnMain(
+                onElement: onElement,
+                onFailure: onFailure,
+                onFinished: onFinished
+            )
+        case let .nonFailable(stream):
+            guard let observer = stream as? any NonFailableStreamElementMainObserving<Element> else {
+                return Task.empty
+            }
+            return observer.observeOnMain(
+                onElement: onElement,
+                onFinished: onFinished
+            )
         }
-        
-        return observer.observeOnMain(
-            onElement: onElement,
-            onFailure: onFailure,
-            onFinished: onFinished
-        )
     }
 }

@@ -63,11 +63,45 @@ extension AnyRelay {
         let publisher: any Publisher<Element, Never>
         let elementProvider: (any StreamElementProviding<Element>)?
         let makeAsyncSequence: @Sendable () -> any AsyncSendableSequence<Element, Never>
-
+        
+        let makeObservationTask: @Sendable (
+            TaskPriority,
+            @escaping @Sendable (Element) async -> Void,
+            (@Sendable () async -> Void)?
+        ) -> Task<Void, Never>
+        
+        let makeObservationOnMainTask: @Sendable (
+            @escaping @MainActor (Element) async -> Void,
+            (@MainActor () async -> Void)?
+        ) -> Task<Void, Never>
+        
         init<S>(_ stream: S) where S: FailableStream, S.Element == Element {
             self.publisher = NeverWrappedPublisher<Element, S.Failure>(stream.makePublisher())
             self.elementProvider = stream as? any StreamElementProviding<Element>
             self.makeAsyncSequence = { AsyncNeverWrappedSequence<Element, S.Failure>(stream.makeAsyncSequence()) }
+            
+            self.makeObservationTask = { priority, onElement, onFinished in
+                guard let observer = stream as? any FailableStreamElementObserving<Element, S.Failure> else {
+                    return Task.empty
+                }
+                return observer.observe(
+                    priority: priority,
+                    onElement: onElement,
+                    onFailure: nil, // Should I call onFinished when a failure is received?: `{ _ in await onFinished?() }`
+                    onFinished: onFinished
+                )
+            }
+            
+            self.makeObservationOnMainTask = { onElement, onFinished in
+                guard let observer = stream as? any FailableStreamElementMainObserving<Element, S.Failure> else {
+                    return Task.empty
+                }
+                return observer.observeOnMain(
+                    onElement: onElement,
+                    onFailure: nil, // Should I call onFinished when a failure is received?: `{ _ in await onFinished?() }`
+                    onFinished: onFinished
+                )
+            }
         }
     }
 
@@ -126,15 +160,23 @@ extension AnyRelay: StreamElementProviding, NonFailableStreamElementObserving, N
         onElement: @escaping @Sendable (Element) async -> Void,
         onFinished: (@Sendable () async -> Void)?
     ) -> Task<Void, Never> {
-        guard let observer = self.wrapped as? any NonFailableStreamElementObserving<Element> else {
-            return Task {}
+        switch self.wrapped {
+        case let .failable(box):
+            return box.makeObservationTask(
+                priority,
+                onElement,
+                onFinished
+            )
+        case let .nonFailable(stream):
+            guard let observer = stream as? any NonFailableStreamElementObserving<Element> else {
+                return Task.empty
+            }
+            return observer.observe(
+                priority: priority,
+                onElement: onElement,
+                onFinished: onFinished
+            )
         }
-        
-        return observer.observe(
-            priority: priority,
-            onElement: onElement,
-            onFinished: onFinished
-        )
     }
     
     @discardableResult
@@ -142,13 +184,20 @@ extension AnyRelay: StreamElementProviding, NonFailableStreamElementObserving, N
         onElement: @escaping @MainActor (Element) async -> Void,
         onFinished: (@MainActor () async -> Void)?
     ) -> Task<Void, Never> {
-        guard let observer = self.wrapped as? any NonFailableStreamElementMainObserving<Element> else {
-            return Task {}
+        switch self.wrapped {
+        case let .failable(box):
+            return box.makeObservationOnMainTask(
+                onElement,
+                onFinished
+            )
+        case let .nonFailable(stream):
+            guard let observer = stream as? any NonFailableStreamElementMainObserving<Element> else {
+                return Task.empty
+            }
+            return observer.observeOnMain(
+                onElement: onElement,
+                onFinished: onFinished
+            )
         }
-        
-        return observer.observeOnMain(
-            onElement: onElement,
-            onFinished: onFinished
-        )
     }
 }
